@@ -9,7 +9,9 @@ target_sources(${tname}
                   src/main.cpp
                   "src/alumi/lexer/test_lexer_detail.cpp"
                   "src/alumi/lexer/test_lexicon.cpp" 
-                  "src/alumi/lexer/test_lexer.cpp")
+                  "src/alumi/lexer/test_lexer.cpp" 
+                  "src/alumi/parser/test_parser_parts.cpp"
+                    "src/alumi/parser/test_parse_rule.cpp")
 
 find_package(Catch2)
 
