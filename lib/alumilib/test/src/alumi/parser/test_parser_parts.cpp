@@ -156,6 +156,36 @@ TEST_CASE("Test Parser Parts")
 		}
 	}
 
+	SECTION("Skip")
+	{
+		SECTION("Ok - Ignore")
+		{
+			Sequence<Peek<Is<TokenType::Symbol>>, Is<TokenType::Symbol>> element;
+
+			std::vector<Token> tokens{
+				Token(TokenType::Symbol, TextPos(0, 0), 2)
+			};
+			Subparser parser(tokens);
+
+			auto res = element.parse(parser);
+			REQUIRE(res.get_type() == ParseResult::Type::Success);
+			REQUIRE(res.get_consumed() == 1);
+		}
+
+		SECTION("Failure Wrong Peek Token")
+		{
+			Sequence<Peek<Is<TokenType::Literal>>, Is<TokenType::Symbol>> element;
+
+			std::vector<Token> tokens{
+				Token(TokenType::Symbol, TextPos(0, 0), 2)
+			};
+			Subparser parser(tokens);
+
+			auto res = element.parse(parser);
+			REQUIRE(res.get_type() == ParseResult::Type::Failure);
+			REQUIRE(res.get_consumed() == 0);
+		}
+	}
 
 	SECTION("Repeats")
 	{
@@ -326,6 +356,211 @@ TEST_CASE("Test Parser Parts")
 			REQUIRE(res.get_type() == ParseResult::Type::Success);
 			REQUIRE(res.get_consumed() == 2);
 			//REQUIRE(res.get_nodes().size() == 1 );
+		}
+	}
+
+	SECTION("Indent")
+	{
+		SECTION("Ok")
+		{
+			Sequence<Indented, Is<TokenType::Symbol>> element;
+
+			std::vector<Token> tokens{
+				Token(TokenType::Indent, TextPos(0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1), 1),
+			};
+
+			Subparser parser(tokens);
+
+			auto res = element.parse(parser);
+			REQUIRE(res.get_type() == ParseResult::Type::Success);
+			REQUIRE(res.get_consumed() == 2);
+		}
+		SECTION("Ok - Stepped")
+		{
+			Repeats< Sequence<Indented, Is<TokenType::Symbol>>> element;
+
+			std::vector<Token> tokens{
+				Token(TokenType::Indent, TextPos(0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1), 1),
+   			Token(TokenType::Indent, TextPos(0, 2), 2),
+				Token(TokenType::Symbol, TextPos(0, 3), 1),
+				Token(TokenType::EndOfFile, TextPos(0, 4), 0),
+			};
+
+			Subparser parser(tokens);
+
+			auto res = element.parse(parser);
+			REQUIRE(res.get_type() == ParseResult::Type::Success);
+			REQUIRE(res.get_consumed() == 4);
+		}
+		SECTION("Not Ok Flat")
+		{
+			Sequence<Indented, Is<TokenType::Symbol>, Indented, Is<TokenType::Symbol>> element;
+
+			std::vector<Token> tokens{
+				Token(TokenType::Indent, TextPos(0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1), 1),
+				Token(TokenType::Indent, TextPos(0, 2), 1),
+				Token(TokenType::Symbol, TextPos(0, 3), 1),
+       		Token(TokenType::EndOfFile, TextPos(0, 4), 0),
+			};
+
+			Subparser parser(tokens);
+
+			auto res = element.parse(parser);
+			REQUIRE(res.get_type() == ParseResult::Type::Failure);
+			REQUIRE(res.get_consumed() == 3);
+		}
+	}
+
+	SECTION("Dedented")
+	{
+		SECTION("Ok")
+		{
+			Sequence<Indented, Is<TokenType::Symbol>, Dedented, Is<TokenType::Symbol>> element;
+
+			std::vector<Token> tokens{
+				Token(TokenType::Indent, TextPos(0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1), 1),
+				Token(TokenType::Indent, TextPos(0, 0), 0),
+				Token(TokenType::Symbol, TextPos(0, 1), 1),
+			};
+
+			Subparser parser(tokens);
+
+			auto res = element.parse(parser);
+			REQUIRE(res.get_type() == ParseResult::Type::Success);
+			REQUIRE(res.get_consumed() == 4);
+		}
+		SECTION("Ok - Stepped")
+		{
+			Sequence<Repeats<Indented>, Repeats<Sequence<Dedented, Is<TokenType::Symbol>>>> element;
+
+			std::vector<Token> tokens{
+				Token(TokenType::Indent, TextPos(0, 0), 1),
+				Token(TokenType::Indent, TextPos(0, 0), 2),
+				Token(TokenType::Indent, TextPos(0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1), 1),
+				Token(TokenType::Indent, TextPos(0, 2), 0),
+				Token(TokenType::Symbol, TextPos(0, 3), 1),
+				Token(TokenType::EndOfFile, TextPos(0, 4), 0),
+			};
+
+			Subparser parser(tokens);
+
+			auto res = element.parse(parser);
+			REQUIRE(res.get_type() == ParseResult::Type::Success);
+			REQUIRE(res.get_consumed() == 6);
+		}
+		SECTION("Not Ok - Flat")
+		{
+			Sequence<Indented, Is<TokenType::Symbol>, Dedented, Is<TokenType::Symbol>> element;
+
+			std::vector<Token> tokens{
+				Token(TokenType::Indent, TextPos(0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1), 1),
+				Token(TokenType::Indent, TextPos(0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1), 1),
+			};
+
+			Subparser parser(tokens);
+
+			auto res = element.parse(parser);
+			REQUIRE(res.get_type() == ParseResult::Type::Failure);
+			REQUIRE(res.get_consumed() == 3);
+		}
+		SECTION("Not Ok - Indented")
+		{
+			Sequence<Indented, Is<TokenType::Symbol>, Dedented, Is<TokenType::Symbol>> element;
+
+			std::vector<Token> tokens{
+				Token(TokenType::Indent, TextPos(0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1), 1),
+				Token(TokenType::Indent, TextPos(0, 0), 2),
+				Token(TokenType::Symbol, TextPos(0, 1), 1),
+			};
+
+			Subparser parser(tokens);
+
+			auto res = element.parse(parser);
+			REQUIRE(res.get_type() == ParseResult::Type::Failure);
+			REQUIRE(res.get_consumed() == 3);
+		}
+
+	}
+
+
+	SECTION("NoIdent")
+	{
+		SECTION("Ok")
+		{
+			Sequence<Indented, Is<TokenType::Symbol>, NoIndent, Is<TokenType::Symbol>> element;
+
+			std::vector<Token> tokens{
+				Token(TokenType::Indent, TextPos(0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1), 1),
+				Token(TokenType::Indent, TextPos(0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1), 1),
+			};
+
+			Subparser parser(tokens);
+
+			auto res = element.parse(parser);
+			REQUIRE(res.get_type() == ParseResult::Type::Success);
+			REQUIRE(res.get_consumed() == 4);
+		}
+		SECTION("Not Ok - Indent")
+		{
+			Sequence<Indented, Is<TokenType::Symbol>, NoIndent, Is<TokenType::Symbol>> element;
+
+			std::vector<Token> tokens{
+				Token(TokenType::Indent, TextPos(0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1), 1),
+				Token(TokenType::Indent, TextPos(0, 0), 2),
+				Token(TokenType::Symbol, TextPos(0, 1), 1),
+			};
+
+			Subparser parser(tokens);
+
+			auto res = element.parse(parser);
+			REQUIRE(res.get_type() == ParseResult::Type::Failure);
+			REQUIRE(res.get_consumed() == 3);
+		}
+		SECTION("Not Ok - Dedent")
+		{
+			Sequence<Indented, Is<TokenType::Symbol>, NoIndent, Is<TokenType::Symbol>> element;
+
+			std::vector<Token> tokens{
+				Token(TokenType::Indent, TextPos(0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1), 1),
+				Token(TokenType::Indent, TextPos(0, 0), 0),
+				Token(TokenType::Symbol, TextPos(0, 1), 1),
+			};
+
+			Subparser parser(tokens);
+
+			auto res = element.parse(parser);
+			REQUIRE(res.get_type() == ParseResult::Type::Failure);
+			REQUIRE(res.get_consumed() == 3);
+		}
+		SECTION("Not Ok - After dedent")
+		{
+			Sequence<Indented, Indented, Is<TokenType::Symbol>, Peek<Dedented>, NoIndent, Is<TokenType::Symbol>> element;
+
+			std::vector<Token> tokens{
+				Token(TokenType::Indent, TextPos(0, 0), 0),
+				Token(TokenType::Indent, TextPos(0, 0), 2),
+				Token(TokenType::Symbol, TextPos(0, 1), 1),
+				Token(TokenType::Indent, TextPos(0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1), 1),
+			};
+
+			Subparser parser(tokens);
+
+			auto res = element.parse(parser);
+			REQUIRE(res.get_type() == ParseResult::Type::Failure);
+			REQUIRE(res.get_consumed() == 4);
 		}
 	}
 

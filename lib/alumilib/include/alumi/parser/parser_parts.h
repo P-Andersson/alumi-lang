@@ -16,6 +16,10 @@ namespace alumi
    namespace parser
    {
 
+      //!
+      //! Represents a parsing view of a single token stream
+      //! 
+      //! 
       class Subparser
       {
       public:
@@ -27,14 +31,25 @@ namespace alumi
 
          Token peek();
 
-         void skip_forward(size_t steps);
+         //!
+         //! Copies the state of a child-parser that should not be scope-limited to a sub-expression,
+         //! such current token and the indention data
+         //! 
+         void use_state(const Subparser& parser);
 
          size_t get_distance() const;
 
+         std::optional<size_t> get_indent() const;
+
+         //!
+         //! Marks this parser, along with further children, 
+         //! to swallow and ignore further tokens of this type
+         //! 
          void add_swallowed_token(TokenType type);
 
       private:
          std::vector<Token>* m_token_source;
+         std::vector<size_t> m_indent_stack;
 
          size_t m_start;
          size_t m_current;
@@ -79,10 +94,26 @@ namespace alumi
 
       template<typename T>
       concept ParserElement = requires (T& element, Subparser& parent) {
-         true; //element.parse(parent); // Todo disables recursive tri
+         true; //element.parse(parent); // If enabled, forward declared types cannot be used and that makes recurisve rules impossible
       };
-
-
+      
+      template<ParserElement T>
+      class Peek
+      {
+      public:
+         static ParseResult parse(Subparser& parent)
+         {
+            Subparser child = parent.create_child();
+            auto res = T::parse(child);
+            if (res.get_type() == ParseResult::Type::Success)
+            {
+               return ParseResult(ParseResult::Type::Success, parent, {});
+            }
+            return ParseResult(ParseResult::Type::Failure, parent, {});
+         }
+      private:
+      };
+      
       template<TokenType token_type>
       class Is
       {
@@ -127,7 +158,7 @@ namespace alumi
             }
             else
             {
-               parent.skip_forward(res.get_consumed());
+               parent.use_state(res.get_subparser());
                return ParseResult(ParseResult::Type::Success, parent, res.get_nodes());
             }
          }
@@ -154,7 +185,7 @@ namespace alumi
                else
                {
                   child_nodes.insert(child_nodes.end(), res.get_nodes().begin(), res.get_nodes().end());
-                  parent.skip_forward(res.get_consumed());
+                  parent.use_state(res.get_subparser());
                }
             }
          }
@@ -183,10 +214,10 @@ namespace alumi
                else
                {
                   child_nodes.insert(child_nodes.end(), res.get_nodes().begin(), res.get_nodes().end());
-                  parent.skip_forward(res.get_consumed());
+                  parent.use_state(res.get_subparser());
                   if (parent.peek().type() == seperator)
                   {
-                     parent.skip_forward(1);
+                     parent.advance();
                   }
                   else
                   {
@@ -235,6 +266,37 @@ namespace alumi
 
       };
 
+      //!
+      //! Expect an Indent token, that indents to a greater than the previous line
+      //! 
+      class Indented
+      {
+      public:
+         static ParseResult parse(Subparser& parent);
+      private:
+      };
+
+      //!
+      //! Expect an Indent token, that indents to a lesser than the previous line
+      //! 
+      class Dedented
+      {
+      public:
+         static ParseResult parse(Subparser& parent);
+      private:
+      };
+
+      //!
+      //! Expect an Indent token, that indents to the same level as previous line
+      //! 
+      class NoIndent
+      {
+      public:
+         static ParseResult parse(Subparser& parent);
+      private:
+      };
+
+
       template<ParserElement... Ts>
       class AnyOf
       {
@@ -247,7 +309,7 @@ namespace alumi
             {
                res = *best_failure;
             }
-            parent.skip_forward(res.get_consumed());
+            parent.use_state(res.get_subparser());
             return ParseResult(res.get_type(), parent, res.get_nodes());
 
          }

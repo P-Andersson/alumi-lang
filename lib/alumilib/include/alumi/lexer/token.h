@@ -23,6 +23,7 @@ namespace alumi
       For,
       While,
       Indent,
+      EndOfFile
    };
 
 
