@@ -11,6 +11,8 @@ namespace alumi
    {
       Operator,
       Assignment,
+      ReturnOp,
+      Noop,
       Symbol,
       Literal,
       ScopeBegin,

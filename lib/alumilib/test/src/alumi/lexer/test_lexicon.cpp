@@ -54,8 +54,9 @@ TEST_CASE("Lex Snippets")
 				TokenType::Symbol,
 				TokenType::Symbol,
 				TokenType::SubScopeEnd,
-				TokenType::Operator,
-				TokenType::Symbol
+				TokenType::ReturnOp,
+				TokenType::Symbol,
+				TokenType::EndOfFile,
 		}));
 	}
 }

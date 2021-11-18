@@ -16,6 +16,8 @@ namespace alumi
       Tokenize(Repeats<AnyOf, 1>(AnyOf(ALUMI_OPERATOR_CHARS)), TokenType::Operator),
       Tokenize(Repeats<AnyOf, 1>(AnyOf(ALUMI_NUMERICS)), TokenType::Literal),
       Tokenize(Text(":="), TokenType::Assignment),
+      Tokenize(Text("->"), TokenType::ReturnOp),
+      Tokenize(Text("noop"), TokenType::Noop),
       Tokenize(Text(","), TokenType::Seperator),
       Tokenize(Text("("), TokenType::SubscopeBegin),
       Tokenize(Text(")"), TokenType::SubScopeEnd),

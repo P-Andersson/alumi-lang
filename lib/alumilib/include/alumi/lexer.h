@@ -163,6 +163,8 @@ namespace alumi
             LexerResult res = terminate_codepoint(pos - cur_token_start, tokens, line, cur_token_start - line_start, pos - line_start);
             handle_lexer_result(res);
          }
+
+         tokens.push_back(Token(TokenType::EndOfFile, TextPos(line, cur_token_start - line_start), 0));
          return tokens;
       }
    private:

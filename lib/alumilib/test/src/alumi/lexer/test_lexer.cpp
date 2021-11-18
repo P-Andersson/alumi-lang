@@ -53,11 +53,12 @@ TEST_CASE("Basics")
 		{
 			Tokens tokens = lexer.lex(to_code_points("ABC"));
 
-			REQUIRE(tokens.size() == 4);
+			REQUIRE(tokens.size() == 5);
 			REQUIRE(tokens[0] == Token(TokenType::Indent, TextPos(0, 0), 0));
 			REQUIRE(tokens[1] == Token((TokenType)0, TextPos(0, 0), 1));
 			REQUIRE(tokens[2] == Token((TokenType)1, TextPos(0, 1), 1));
 			REQUIRE(tokens[3] == Token((TokenType)2, TextPos(0, 2), 1));
+			REQUIRE(tokens[4] == Token(TokenType::EndOfFile, TextPos(0, 3), 0));
 
 		}
 	}
@@ -74,18 +75,17 @@ TEST_CASE("Basics")
 		{
 			Tokens tokens = lexer.lex(to_code_points("AAA C  B"));
 
-			REQUIRE(tokens.size() == 4);
+			REQUIRE(tokens.size() == 5);
 			REQUIRE(tokens[0] == Token(TokenType::Indent, TextPos(0, 0), 0));
 			REQUIRE(tokens[1] == Token((TokenType)0, TextPos(0, 0), 3));
 			REQUIRE(tokens[2] == Token((TokenType)2, TextPos(0, 4), 1));
 			REQUIRE(tokens[3] == Token((TokenType)1, TextPos(0, 7), 1));
-
 		}
 		SECTION("End Repeats")
 		{
 			Tokens tokens = lexer.lex(to_code_points("AA"));
 
-			REQUIRE(tokens.size() == 2);
+			REQUIRE(tokens.size() == 3);
 			REQUIRE(tokens[0] == Token(TokenType::Indent, TextPos(0, 0), 0));
 			REQUIRE(tokens[1] == Token((TokenType)0, TextPos(0, 0), 2));
 		}
@@ -100,7 +100,7 @@ TEST_CASE("Basics")
 		{
 			Tokens tokens = lexer.lex(to_code_points("  B"));
 
-			REQUIRE(tokens.size() == 2);
+			REQUIRE(tokens.size() == 3);
 			REQUIRE(tokens[0] == Token(TokenType::Indent, TextPos(0, 0), 2));
 			REQUIRE(tokens[1] == Token((TokenType)1, TextPos(0, 2), 1));
 		}
@@ -108,7 +108,7 @@ TEST_CASE("Basics")
 		{
 			Tokens tokens = lexer.lex(to_code_points("B\n   B\n   B"));
 
-			REQUIRE(tokens.size() == 6);
+			REQUIRE(tokens.size() == 7);
 			REQUIRE(tokens[0] == Token(TokenType::Indent, TextPos(0, 0), 0));
 			REQUIRE(tokens[1] == Token((TokenType)1, TextPos(0, 0), 1));
 			REQUIRE(tokens[2] == Token(TokenType::Indent, TextPos(1, 0), 3));
@@ -120,7 +120,7 @@ TEST_CASE("Basics")
 		{
 			Tokens tokens = lexer.lex(to_code_points("B\n   B\nB"));
 
-			REQUIRE(tokens.size() == 6);
+			REQUIRE(tokens.size() == 7);
 			REQUIRE(tokens[0] == Token(TokenType::Indent, TextPos(0, 0), 0));
 			REQUIRE(tokens[1] == Token((TokenType)1, TextPos(0, 0), 1));
 			REQUIRE(tokens[2] == Token(TokenType::Indent, TextPos(1, 0), 3));
@@ -132,7 +132,7 @@ TEST_CASE("Basics")
 		{
 			Tokens tokens = lexer.lex(to_code_points("B\n   B\n      B"));
 
-			REQUIRE(tokens.size() == 6);
+			REQUIRE(tokens.size() == 7);
 			REQUIRE(tokens[0] == Token(TokenType::Indent, TextPos(0, 0), 0));
 			REQUIRE(tokens[1] == Token((TokenType)1, TextPos(0, 0), 1));
 			REQUIRE(tokens[2] == Token(TokenType::Indent, TextPos(1, 0), 3));
@@ -144,7 +144,7 @@ TEST_CASE("Basics")
 		{
 			Tokens tokens = lexer.lex(to_code_points("B\n\tB\n\t\tB\nB"));
 
-			REQUIRE(tokens.size() == 8);
+			REQUIRE(tokens.size() == 9);
 			REQUIRE(tokens[0] == Token(TokenType::Indent, TextPos(0, 0), 0));
 			REQUIRE(tokens[1] == Token((TokenType)1, TextPos(0, 0), 1));
 			REQUIRE(tokens[2] == Token(TokenType::Indent, TextPos(1, 0), 1));
@@ -158,7 +158,7 @@ TEST_CASE("Basics")
 		{
 			Tokens tokens = lexer.lex(to_code_points("B\n   B\n      B\n   B\nB"));
 
-			REQUIRE(tokens.size() == 10);
+			REQUIRE(tokens.size() == 11);
 			REQUIRE(tokens[0] == Token(TokenType::Indent, TextPos(0, 0), 0));
 			REQUIRE(tokens[1] == Token((TokenType)1, TextPos(0, 0), 1));
 			REQUIRE(tokens[2] == Token(TokenType::Indent, TextPos(1, 0), 3));
@@ -174,7 +174,7 @@ TEST_CASE("Basics")
 		{
 			Tokens tokens = lexer.lex(to_code_points("B\n    \n\n   B\n      B\n   \nB"));
 
-			REQUIRE(tokens.size() == 8);
+			REQUIRE(tokens.size() == 9);
 			REQUIRE(tokens[0] == Token(TokenType::Indent, TextPos(0, 0), 0));
 			REQUIRE(tokens[1] == Token((TokenType)1, TextPos(0, 0), 1));
 			REQUIRE(tokens[2] == Token(TokenType::Indent, TextPos(3, 0), 3));
@@ -198,7 +198,7 @@ TEST_CASE("Basics")
 		{
 			Tokens tokens = lexer.lex(to_code_points("AB"));
 
-			REQUIRE(tokens.size() == 2);
+			REQUIRE(tokens.size() == 3);
 			REQUIRE(tokens[0] == Token(TokenType::Indent, TextPos(0, 0), 0));
 			REQUIRE(tokens[1] == Token((TokenType)1, TextPos(0, 0), 2));
 

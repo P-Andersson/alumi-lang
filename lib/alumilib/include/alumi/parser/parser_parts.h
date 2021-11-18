@@ -23,13 +23,26 @@ namespace alumi
       class Subparser
       {
       public:
-         Subparser(std::vector<Token>& tokens);
+         Subparser(const std::vector<Token>& tokens);
 
          Subparser create_child() const;
 
          Token advance();
 
-         Token peek();
+         Token peek() const;
+
+         Token start_token() const;
+
+         Token current_token() const; 
+
+         size_t start_token_index() const;
+
+         size_t current_token_index() const;
+
+         //!
+         //! Points the token index to this parsers start posiiton, not to zero
+         //! 
+         void restart_parsing();
 
          //!
          //! Copies the state of a child-parser that should not be scope-limited to a sub-expression,
@@ -47,13 +60,19 @@ namespace alumi
          //! 
          void add_swallowed_token(TokenType type);
 
+         void do_panic();
+         void clear_panic();
+         bool is_panicing() const;
+
       private:
-         std::vector<Token>* m_token_source;
+         const std::vector<Token>* m_token_source;
          std::vector<size_t> m_indent_stack;
 
          size_t m_start;
          size_t m_current;
          std::vector<TokenType> m_swallowed;
+
+         bool m_is_panicing;
 
       };
 
@@ -68,6 +87,7 @@ namespace alumi
          enum class Type
          {
             Failure,
+            RecoveredFailure,
             Success
          };
 
@@ -235,32 +255,44 @@ namespace alumi
       public:
          static ParseResult parse(Subparser& parent)
          {
-            syntax_tree::Nodes child_nodes;
-            ParseResult res = do_parse<Ts...>(parent, child_nodes);
-            return ParseResult(res.get_type(), parent, child_nodes);
+            State state;
+            ParseResult res = do_parse<Ts...>(parent, state);
+            return ParseResult(state.worst_result, parent, state.child_nodes);
          }
       private:
+         class State
+         {
+         public:
+            ParseResult::Type worst_result = ParseResult::Type::Success;
+            syntax_tree::Nodes child_nodes;
+         };
 
          template<ParserElement ElemT>
-         static ParseResult do_parse(Subparser& parent, syntax_tree::Nodes& child_nodes)
+         static ParseResult do_parse(Subparser& parent, State& state)
          {
             ParseResult res = ElemT::parse(parent);
-            child_nodes.insert(child_nodes.end(), res.get_nodes().begin(), res.get_nodes().end());
+            if (res.get_type() < state.worst_result)
+            {
+               state.worst_result = res.get_type();
+            }
+
+            state.child_nodes.insert(state.child_nodes.end(), res.get_nodes().begin(), res.get_nodes().end());
 
             return res;
          }
 
          template<ParserElement ElemT, ParserElement NextT, ParserElement... OthersT>
-         static ParseResult do_parse(Subparser& parent, syntax_tree::Nodes& child_nodes)
+         static ParseResult do_parse(Subparser& parent, State& state)
          {
-            ParseResult res = do_parse<ElemT>(parent, child_nodes);
+            ParseResult res = do_parse<ElemT>(parent, state);
+
             if (res.get_type() != ParseResult::Type::Failure)
             {
-               return do_parse<NextT, OthersT...>(parent, child_nodes);
+               return do_parse<NextT, OthersT...>(parent, state);
             }
             else
             {
-               return ParseResult(ParseResult::Type::Failure, parent, child_nodes);
+               return ParseResult(state.worst_result, parent, state.child_nodes);
             }
          }
 
@@ -305,7 +337,7 @@ namespace alumi
          {
             std::optional<ParseResult> best_failure;
             ParseResult res = do_parse<Ts...>(parent, best_failure);
-            if (res.get_type() == ParseResult::Type::Failure)
+            if (res.get_type() != ParseResult::Type::Success)
             {
                res = *best_failure;
             }
@@ -320,9 +352,11 @@ namespace alumi
          {
             Subparser parser = parent.create_child();
             ParseResult res = ElemT::parse(parser);
-            if (res.get_type() == ParseResult::Type::Failure)
+            if (res.get_type() != ParseResult::Type::Success)
             {
-               if (best_failure == std::nullopt || best_failure->get_consumed() < res.get_consumed())
+               if (best_failure == std::nullopt || 
+                  (res.get_type() > best_failure->get_type()) || 
+                  (res.get_type() == best_failure->get_type() && res.get_consumed() > best_failure->get_consumed()))
                {
                   best_failure = res;
                }
@@ -334,7 +368,7 @@ namespace alumi
          static ParseResult do_parse(Subparser& parent, std::optional<ParseResult>& best_failure)
          {
             ParseResult res = do_parse<ElemT>(parent, best_failure);
-            if (res.get_type() == ParseResult::Type::Failure)
+            if (res.get_type() != ParseResult::Type::Success)
             {
                return do_parse<NextT, OthersT...>(parent, best_failure);
             }

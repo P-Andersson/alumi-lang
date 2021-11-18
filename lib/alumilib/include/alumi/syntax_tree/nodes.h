@@ -1,11 +1,18 @@
 #pragma once
 
+#include "alumi/lexer/token.h"
+
 #include <variant>
 #include <vector>
 #include <memory>
 
 namespace alumi
 {
+	namespace parser
+	{
+		class ParseResult;
+	}
+
 	namespace syntax_tree
 	{
 		class Node;
@@ -17,6 +24,7 @@ namespace alumi
 		class Error
 		{
 		public:
+			Error();
 		private:
 		};
 
@@ -71,6 +79,7 @@ namespace alumi
 		public:
 			using Type = std::variant<
 				Error, 
+				ModuleRoot,
 				Declaration, 
 				IntegerLiteral,
 				Expression, 
@@ -78,7 +87,11 @@ namespace alumi
 				FunctionCall, 
 				Brancher>;
 
-			Node(const Type& node);
+			Node(const Type& node, const parser::ParseResult& res);
+			Node(const Type& node, TextPos m_start, TextPos m_end);
+
+
+			std::tuple<TextPos, TextPos> spans() const;
 
 			template<typename T>
 			bool is() const
@@ -88,6 +101,9 @@ namespace alumi
 
 		private:
 			Type m_actual;
+
+			TextPos m_start;
+			TextPos m_end;
 		};
 
 	}

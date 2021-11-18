@@ -2,6 +2,9 @@
 
 #include <memory>
 
+#include "alumi/lexer.h"
+#include "alumi/parser/parser_parts.h"
+
 namespace alumi
 {
    namespace parser
@@ -12,7 +15,7 @@ namespace alumi
          AlumiParser();
          ~AlumiParser();
 
-         void parse() const;
+         ParseResult parse(const std::vector<Token>& tokens) const;
 
       private:
       };

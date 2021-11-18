@@ -23,7 +23,7 @@ PRIVATE
 	"source/alumi/lexer.cpp"
 	"source/alumi/parser.cpp"
 	"source/alumi/text_pos.cpp"
-)
+ "source/alumi/parser/parse_rule.cpp")
 
 find_package(utf8cpp)
 find_package(fmt)
