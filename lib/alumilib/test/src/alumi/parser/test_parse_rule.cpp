@@ -120,7 +120,6 @@ namespace {
                Token(TokenType::Symbol, TextPos(0, 0), 2),
                Token(TokenType::Symbol, TextPos(0, 2), 2),
                Token(TokenType::Symbol, TextPos(0, 4), 2),
-               Token(TokenType::Indent, TextPos(0, 6), 2), // TODO Figure out how to end well?
                Token(TokenType::EndOfFile, TextPos(0, 8), 0)
             };
             Subparser parser(tokens);

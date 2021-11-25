@@ -28,6 +28,10 @@ namespace alumi
       {
          do
          {
+            if (m_current >= m_token_source->size())
+            {
+               return m_token_source->back();
+            }
             auto& cur = (*m_token_source)[m_current++];
             if (std::find(m_swallowed.begin(), m_swallowed.end(), cur.type()) == m_swallowed.end())
             {
@@ -52,6 +56,11 @@ namespace alumi
 
       Token Subparser::peek() const
       {
+         if (m_current >= m_token_source->size())
+         {
+            return m_token_source->back();
+         }
+
          size_t offset = 0;
          do
          {

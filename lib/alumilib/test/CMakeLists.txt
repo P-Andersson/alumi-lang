@@ -12,7 +12,9 @@ target_sources(${tname}
                   "src/alumi/lexer/test_lexer.cpp" 
                   "src/alumi/parser/test_parser_parts.cpp"
                   "src/alumi/parser/test_parse_rule.cpp"
-                  "src/alumi/parser/test_parser.cpp")
+                  "src/alumi/parser/test_parser.cpp" 
+                  "src/syntax_tree/test_nodes.cpp" 
+                  "src/syntax_tree/test_tree_nodes.cpp")
 
 find_package(Catch2)
 

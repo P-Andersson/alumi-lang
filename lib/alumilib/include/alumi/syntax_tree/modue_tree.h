@@ -1,11 +1,14 @@
 #pragma once
 
-#include "alumi/syntax_tree/nodes.h"
+#include <vector>
 
 namespace alumi
 {
 	namespace syntax_tree
 	{
+		class Node;
+		using Nodes = std::vector<Node>;
+
 		class Symbol
 		{
 
@@ -14,7 +17,12 @@ namespace alumi
 		class ModuleTree
 		{
 		public:
+			ModuleTree(const Nodes& nodes);
+
+			Nodes& nodes();
+
 		private:
+			Nodes m_nodes;
 		};
 	}
 }

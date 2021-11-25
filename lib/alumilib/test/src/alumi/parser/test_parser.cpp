@@ -3,10 +3,15 @@
 #include "alumi/parser.h"
 #include "alumi/lexer/alumi_lexicon.h"
 
+#include "alumi/syntax_tree/util_ops.h"
+
+#include <fstream>
+
 #include <utf8cpp/utf8.h>
 
 using namespace alumi;
 using namespace alumi::parser;
+using namespace alumi::syntax_tree;
 
 
 namespace {
@@ -28,6 +33,17 @@ namespace {
 		return code_points;
 	}
 
+	void print_output(const std::string& filename, ModuleTree& tree)
+	{
+		TreeOpRepresentTree representer;
+		ModuleTreeWalker walker(tree);
+
+		walker.walk_from_root(representer);
+
+		std::fstream f;
+		f.open(filename, std::ios::out);
+		f << representer.representation;
+	}
 }
 
 TEST_CASE("Test Main Func")
@@ -44,10 +60,15 @@ TEST_CASE("Test Main Func")
 		AlumiParser parser;
 		ParseResult res = parser.parse(tokens);
 
+		ModuleTree tree(res.get_nodes());
+		print_output("test_main_func_ok.txt", tree);
+
 		REQUIRE(res.get_type() == ParseResult::Type::Success);
-		REQUIRE(res.get_consumed() == 14);
+		REQUIRE(res.get_consumed() == 15);
+
+
 	}
-	SECTION("Some Error")
+	SECTION("Recoverable Error")
 	{
 		auto code_points = to_code_points(""
 			"main := fn(env Environment) --> ResultCode:\n"
@@ -59,7 +80,11 @@ TEST_CASE("Test Main Func")
 		AlumiParser parser;
 		ParseResult res = parser.parse(tokens);
 
-		REQUIRE(res.get_type() == ParseResult::Type::Failure);
-		REQUIRE(res.get_consumed() == 14);
+		ModuleTree tree(res.get_nodes());
+		print_output("test_main_func_not_ok.txt", tree);
+
+		REQUIRE(res.get_type() == ParseResult::Type::RecoveredFailure);
+		REQUIRE(res.get_consumed() == 15);
+
 	}
 }

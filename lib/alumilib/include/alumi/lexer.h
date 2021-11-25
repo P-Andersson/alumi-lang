@@ -124,6 +124,7 @@ namespace alumi
                   handle_lexer_result(res);
                }
 
+               tokens.push_back(Token(TokenType::Linebreak, TextPos(line, pos - line_start), 1));
                line_start = pos + 1;
                line += 1;
                pos += 1;

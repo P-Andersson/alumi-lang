@@ -27,8 +27,16 @@ namespace alumi
 
          Subparser create_child() const;
 
+         //!
+         //! Gets next token and advances internal token index by 1
+         //! If past then end of the token stream, instead returns the last token
+         //! 
          Token advance();
 
+         //!
+         //! Returns the next token
+         //! If past the end of the token stream, instead returns the last token
+         //! 
          Token peek() const;
 
          Token start_token() const;

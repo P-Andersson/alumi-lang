@@ -56,6 +56,7 @@ TEST_CASE("Lex Snippets")
 				TokenType::SubScopeEnd,
 				TokenType::ReturnOp,
 				TokenType::Symbol,
+				TokenType::Linebreak,
 				TokenType::EndOfFile,
 		}));
 	}

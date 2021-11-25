@@ -1,10 +1,10 @@
 #pragma once
 
 #include "alumi/lexer/token.h"
+#include "alumi/syntax_tree/tree_nodes.h"
+#include "alumi/syntax_tree/node_detail.h"
 
 #include <variant>
-#include <vector>
-#include <memory>
 
 namespace alumi
 {
@@ -12,68 +12,14 @@ namespace alumi
 	{
 		class ParseResult;
 	}
-
 	namespace syntax_tree
 	{
-		class Node;
 
-		using Nodes = std::vector<Node>;
-	
-		// Note: Node references should be represent as offsets in the shared node array, relative to the parent
-
-		class Error
-		{
-		public:
-			Error();
-		private:
-		};
-
-		class ModuleRoot
-		{
-		public:
-			void add_node(const Node& node);
-
-		private:
-			Nodes m_nodes;
-		};
-
-		class Declaration
-		{
-		public:
-		private:
-		};
-
-		class IntegerLiteral
-		{
-		public:
-		private:
-		};
-
-		class Expression
-		{
-		public:
-		private:
-		};
-
-		class FunctionDefinition
-		{
-		public:
-		private:
-		};
-
-		class FunctionCall
-		{
-		public:
-		private:
-		};
-
-		class Brancher
-		{
-		public:
-		private:
-		};
-
-
+		//!
+		//! Reprents a single node in a node tree
+		//! 
+		//! Holds type specific data plus shared data
+		//! 
 		class Node
 		{
 		public:
@@ -91,7 +37,37 @@ namespace alumi
 			Node(const Type& node, TextPos m_start, TextPos m_end);
 
 
-			std::tuple<TextPos, TextPos> spans() const;
+			std::tuple<TextPos, TextPos> spans_text() const;
+
+			size_t recursive_child_count() const;
+			size_t child_group_count() const;
+			ChildGroup child_group(size_t group_index) const;
+
+			template<typename VisitorT>
+			auto visit(VisitorT& visitor) const
+			{
+				return std::visit(visitor, m_actual);
+			}
+
+			template<typename VisitorT>
+			auto visit(VisitorT& visitor)
+			{
+				return std::visit(visitor, m_actual);
+			}
+
+			template<typename VisitorT>
+			auto visit(const VisitorT& visitor) const
+			{
+				return std::visit(visitor, m_actual);
+			}
+
+			template<typename VisitorT>
+			auto visit(const VisitorT& visitor)
+			{
+				return std::visit(visitor, m_actual);
+			}
+
+	
 
 			template<typename T>
 			bool is() const

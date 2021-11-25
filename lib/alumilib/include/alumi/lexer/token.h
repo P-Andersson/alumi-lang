@@ -9,23 +9,24 @@ namespace alumi
 
    enum class TokenType
    {
-      Operator,
-      Assignment,
-      ReturnOp,
-      Noop,
-      Symbol,
-      Literal,
-      ScopeBegin,
-      SubscopeBegin,
-      SubScopeEnd,
-      Seperator,
-      FuncDeclare,
-      If,
-      Else,
-      For,
-      While,
-      Indent,
-      EndOfFile
+      Operator         = 0,
+      Assignment       = 1,
+      ReturnOp         = 2,
+      Noop             = 3,
+      Symbol           = 4,
+      Literal          = 5,
+      ScopeBegin       = 6,
+      SubscopeBegin    = 7,
+      SubScopeEnd      = 8,
+      Seperator        = 9,
+      FuncDeclare      = 10,
+      If               = 11,
+      Else             = 12,
+      For              = 13,
+      While            = 14,
+      Indent           = 15,
+      Linebreak        = 16,
+      EndOfFile        = 17
    };
 
 
