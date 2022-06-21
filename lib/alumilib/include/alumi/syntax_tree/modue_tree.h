@@ -17,7 +17,7 @@ namespace alumi
 		class ModuleTree
 		{
 		public:
-			ModuleTree(const Nodes& nodes);
+			ModuleTree( const Nodes& nodes);
 
 			Nodes& nodes();
 

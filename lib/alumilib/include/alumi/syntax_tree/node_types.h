@@ -11,7 +11,9 @@ namespace alumi
 		class Error
 		{
 		public:
-			Error();
+			Error(const Nodes& children);
+
+			ChildGroups<1> groups;
 		private:
 		};
 
@@ -23,13 +25,27 @@ namespace alumi
 			ChildGroups<1> groups;
 		};
 
-		class Declaration
+		class CodeBlock
+		{
+		public:
+			CodeBlock(const Nodes& children);
+
+			ChildGroups<1> groups;
+		};
+
+
+		class Assignment
+		{
+		public:
+		};
+
+		class IntegerLiteral
 		{
 		public:
 		private:
 		};
 
-		class IntegerLiteral
+		class Statement
 		{
 		public:
 		private:

@@ -33,9 +33,9 @@ namespace {
 		return code_points;
 	}
 
-	void print_output(const std::string& filename, ModuleTree& tree)
+	void print_output(const std::string& filename, ModuleTree& tree, const std::vector<UnicodeCodePoint>& text, const std::vector<Token>& tokens)
 	{
-		TreeOpRepresentTree representer;
+		TreeOpRepresentTree representer(&text, &tokens);
 		ModuleTreeWalker walker(tree);
 
 		walker.walk_from_root(representer);
@@ -61,7 +61,7 @@ TEST_CASE("Test Main Func")
 		ParseResult res = parser.parse(tokens);
 
 		ModuleTree tree(res.get_nodes());
-		print_output("test_main_func_ok.txt", tree);
+		print_output("test_main_func_ok.txt", tree, code_points, tokens);
 
 		REQUIRE(res.get_type() == ParseResult::Type::Success);
 		REQUIRE(res.get_consumed() == 15);
@@ -81,10 +81,83 @@ TEST_CASE("Test Main Func")
 		ParseResult res = parser.parse(tokens);
 
 		ModuleTree tree(res.get_nodes());
-		print_output("test_main_func_not_ok.txt", tree);
+		print_output("test_main_func_not_ok.txt", tree, code_points, tokens);
 
 		REQUIRE(res.get_type() == ParseResult::Type::RecoveredFailure);
 		REQUIRE(res.get_consumed() == 15);
 
+	}
+}
+TEST_CASE("Test integer Func")
+{
+	SECTION("Correct")
+	{
+		auto code_points = to_code_points(""
+			"foo := fn(inp int32) -> int32:\n"
+			"   noop"
+			"");
+
+		auto tokens = default_lexer.lex(code_points);
+
+		AlumiParser parser;
+		ParseResult res = parser.parse(tokens);
+
+		ModuleTree tree(res.get_nodes());
+		print_output("test_integer_func_ok.txt", tree, code_points, tokens);
+
+		REQUIRE(res.get_type() == ParseResult::Type::Success);
+		REQUIRE(res.get_consumed() == 15);
+	}
+	SECTION("Recoverable Error")
+	{
+		auto code_points = to_code_points(""
+			"foo := fn(inp int32) && int32:\n"
+			"   noop"
+			"");
+
+		auto tokens = default_lexer.lex(code_points);
+
+		AlumiParser parser;
+		ParseResult res = parser.parse(tokens);
+
+		ModuleTree tree(res.get_nodes());
+		print_output("test_integer_func_not_ok.txt", tree, code_points, tokens);
+
+		REQUIRE(res.get_type() == ParseResult::Type::RecoveredFailure);
+		REQUIRE(res.get_consumed() == 15);
+	}
+}
+
+TEST_CASE("Test primitive decleration")
+{
+	SECTION("Correct - int")
+	{
+		auto code_points = to_code_points("foo := 5");
+
+		auto tokens = default_lexer.lex(code_points);
+
+		AlumiParser parser;
+		ParseResult res = parser.parse(tokens);
+
+		ModuleTree tree(res.get_nodes());
+		print_output("test_prim_dec_integer_ok.txt", tree, code_points, tokens);
+
+		REQUIRE(res.get_type() == ParseResult::Type::Success);
+		REQUIRE(res.get_consumed() == 5);
+	}
+	SECTION("Recovered Error - int")
+	{
+		auto code_points = to_code_points("foo := 5<<<");
+
+		auto tokens = default_lexer.lex(code_points);
+
+		AlumiParser parser;
+		ParseResult res = parser.parse(tokens);
+
+		ModuleTree tree(res.get_nodes());
+		print_output("test_prim_dec_integer_not_ok.txt", tree, code_points, tokens);
+
+		REQUIRE(res.get_type() == ParseResult::Type::RecoveredFailure);
+		REQUIRE(res.get_consumed() == 5);
 	}
 }

@@ -2,7 +2,7 @@
 
 #include "alumi/lexer/token.h"
 #include "alumi/syntax_tree/tree_nodes.h"
-#include "alumi/syntax_tree/node_detail.h"
+#include "alumi/syntax_tree/node_types.h"
 
 #include <variant>
 
@@ -26,18 +26,20 @@ namespace alumi
 			using Type = std::variant<
 				Error, 
 				ModuleRoot,
-				Declaration, 
+				CodeBlock,
+				Assignment,
 				IntegerLiteral,
 				Expression, 
+				Statement,
 				FunctionDefinition,
 				FunctionCall, 
 				Brancher>;
 
 			Node(const Type& node, const parser::ParseResult& res);
-			Node(const Type& node, TextPos m_start, TextPos m_end);
+			Node(const Type& node, size_t m_token_start, size_t m_token_end);
 
 
-			std::tuple<TextPos, TextPos> spans_text() const;
+			std::tuple<size_t, size_t> spans_tokens() const;
 
 			size_t recursive_child_count() const;
 			size_t child_group_count() const;
@@ -78,8 +80,8 @@ namespace alumi
 		private:
 			Type m_actual;
 
-			TextPos m_start;
-			TextPos m_end;
+			size_t m_token_start;
+			size_t m_token_end;
 		};
 
 	}

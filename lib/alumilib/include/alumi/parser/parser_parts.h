@@ -27,6 +27,8 @@ namespace alumi
 
          Subparser create_child() const;
 
+         const std::vector<Token>& tokens() const;
+
          //!
          //! Gets next token and advances internal token index by 1
          //! If past then end of the token stream, instead returns the last token

@@ -71,20 +71,20 @@ namespace alumi
 		}
 
 		Node::Node(const Type& node, const parser::ParseResult& res)
-		: Node(node, res.get_subparser().start_token().pos(), res.get_subparser().current_token().pos())
+		: Node(node, res.get_subparser().start_token_index(), res.get_subparser().current_token_index())
 		{
 
 		}
-		Node::Node(const Type& node, TextPos m_start, TextPos m_end)
+		Node::Node(const Type& node, size_t m_token_start, size_t m_token_end)
 			: m_actual(node)
-			, m_start(m_start)
-			, m_end(m_end)
+			, m_token_start(m_token_start)
+			, m_token_end(m_token_end)
 		{
 		}
 
-		std::tuple<TextPos, TextPos> Node::spans_text() const
+		std::tuple<size_t, size_t> Node::spans_tokens() const
 		{
-			return { m_start, m_end };
+			return { m_token_start, m_token_end };
 		}
 
 		size_t Node::recursive_child_count() const

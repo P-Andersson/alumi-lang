@@ -27,30 +27,30 @@ namespace {
    {
       SECTION("Test Span")
       {
-         Node node(Error(), TextPos(0, 4), TextPos(3, 12));
+         Node node(Statement(), 4, 6);
 
-         REQUIRE(node.spans_text() == std::make_tuple(TextPos(0, 4), TextPos(3, 12)));
+         REQUIRE(node.spans_tokens() == std::make_tuple(4, 6 ));
       }
 
       SECTION("Is")
       {
-         Node node(Error(), TextPos(0, 4), TextPos(3, 12));
+         Node node(Statement(), 4, 6);
 
          REQUIRE(node.is<FunctionCall>() == false);
-         REQUIRE(node.is<Error>() == true);
+         REQUIRE(node.is<Statement>() == true);
       }
 
       SECTION("Node Count")
       {
-         Node node1(Error(), TextPos(0, 4), TextPos(3, 12));
+         Node node1(Statement(), 4, 6);
 
          REQUIRE(node1.recursive_child_count() == 0);
          
          Nodes nodes({ 
-            Node(Declaration(),  TextPos(0, 0), TextPos(0, 2)),
-            Node(Expression(),  TextPos(0, 2), TextPos(0, 4)) 
+            Node(Assignment(),  0, 1),
+            Node(Expression(),  1, 2) 
          });
-         Node node2(ModuleRoot(nodes), TextPos(0, 0), TextPos(0, 4));
+         Node node2(ModuleRoot(nodes), 0, 2);
 
          REQUIRE(node2.recursive_child_count() == 2);
       }
@@ -58,14 +58,14 @@ namespace {
       SECTION("Visit")
       {
          {
-            Node node1(Error(), TextPos(0, 4), TextPos(3, 12));
+            Node node1(Statement(), 0, 4);
 
             TestGetTypeOp op;
-            REQUIRE(node1.visit(op) == typeid(Error));
+            REQUIRE(node1.visit(op) == typeid(Statement));
          }
 
          {
-            Node node1(Expression(), TextPos(999 , 10), TextPos(1455, 12));
+            Node node1(Expression(), 999, 1455);
 
             TestGetTypeOp op;
             REQUIRE(node1.visit(op) == typeid(Expression));

@@ -13,7 +13,7 @@ namespace {
    {
       if (res.get_type() == ParseResult::Type::Failure)
       {
-         return Node(Error(), res);
+         return Node(Error(res.get_nodes()), res);
       }
       return Node(IntegerLiteral(), res);
    };
@@ -22,7 +22,7 @@ namespace {
    {
       if (res.get_type() == ParseResult::Type::Failure)
       {
-         return Node(Error(), res);
+         return Node(Error(res.get_nodes()), res);
       }
       return Node(Expression(), res);
    };
@@ -30,7 +30,7 @@ namespace {
    {
       if (res.get_type() == ParseResult::Type::Failure)
       {
-         return Node(Error(), res);
+         return Node(Error(res.get_nodes()), res);
       }
       return Node(FunctionCall(), res);
    };
@@ -46,9 +46,9 @@ namespace {
          {
 
             std::vector<Token> tokens{
-               Token(TokenType::Indent, TextPos(0, 0), 2),
-               Token(TokenType::Literal, TextPos(0, 2), 2),
-               Token(TokenType::EndOfFile, TextPos(0, 4), 0)
+               Token(TokenType::Indent, TextPos(0, 0, 0), 2),
+               Token(TokenType::Literal, TextPos(0, 2, 2), 2),
+               Token(TokenType::EndOfFile, TextPos(0, 4, 4), 0)
             };
             Subparser parser(tokens);
 
@@ -63,9 +63,9 @@ namespace {
          {
 
             std::vector<Token> tokens{
-               Token(TokenType::Indent, TextPos(0, 0), 2),
-               Token(TokenType::Indent, TextPos(0, 2), 2),
-               Token(TokenType::EndOfFile, TextPos(0, 4), 0)
+               Token(TokenType::Indent, TextPos(0, 0, 0), 2),
+               Token(TokenType::Indent, TextPos(0, 2, 2), 2),
+               Token(TokenType::EndOfFile, TextPos(0, 4, 4), 0)
             };
             Subparser parser(tokens);
 
@@ -99,9 +99,9 @@ namespace {
          {
 
             std::vector<Token> tokens{
-               Token(TokenType::Operator, TextPos(0, 0), 2),
-               Token(TokenType::Operator, TextPos(0, 2), 2),
-               Token(TokenType::EndOfFile, TextPos(0, 4), 0)
+               Token(TokenType::Operator, TextPos(0, 0, 0), 2),
+               Token(TokenType::Operator, TextPos(0, 2, 2), 2),
+               Token(TokenType::EndOfFile, TextPos(0, 4, 4), 0)
             };
             Subparser parser(tokens);
 
@@ -117,10 +117,10 @@ namespace {
          {
 
             std::vector<Token> tokens{
-               Token(TokenType::Symbol, TextPos(0, 0), 2),
-               Token(TokenType::Symbol, TextPos(0, 2), 2),
-               Token(TokenType::Symbol, TextPos(0, 4), 2),
-               Token(TokenType::EndOfFile, TextPos(0, 8), 0)
+               Token(TokenType::Symbol, TextPos(0, 0, 0), 2),
+               Token(TokenType::Symbol, TextPos(0, 2, 2), 2),
+               Token(TokenType::Symbol, TextPos(0, 4, 4), 2),
+               Token(TokenType::EndOfFile, TextPos(0, 8, 8), 0)
             };
             Subparser parser(tokens);
 
@@ -138,9 +138,9 @@ namespace {
          {
 
             std::vector<Token> tokens{
-               Token(TokenType::Operator, TextPos(0, 0), 2),
-               Token(TokenType::Indent, TextPos(0, 2), 2),
-               Token(TokenType::EndOfFile, TextPos(0, 4), 0)
+               Token(TokenType::Operator, TextPos(0, 0, 0), 2),
+               Token(TokenType::Indent, TextPos(0, 2, 2), 2),
+               Token(TokenType::EndOfFile, TextPos(0, 4, 4), 0)
             };
             Subparser parser(tokens);
 
@@ -165,11 +165,11 @@ namespace {
       SECTION("SynchOnToken")
       {
          std::vector<Token> tokens{
-            Token(TokenType::Symbol, TextPos(0, 0), 2),
-            Token(TokenType::Symbol, TextPos(0, 2), 2),
-            Token(TokenType::Operator, TextPos(0, 4), 2),
-            Token(TokenType::Indent, TextPos(0, 6), 2),
-            Token(TokenType::EndOfFile, TextPos(0, 8), 0)
+            Token(TokenType::Symbol, TextPos(0, 0, 0), 2),
+            Token(TokenType::Symbol, TextPos(0, 2, 2), 2),
+            Token(TokenType::Operator, TextPos(0, 4, 4), 2),
+            Token(TokenType::Indent, TextPos(0, 6, 6), 2),
+            Token(TokenType::EndOfFile, TextPos(0, 8, 8), 0)
          };
          Subparser parser(tokens);
 
@@ -186,11 +186,11 @@ namespace {
       SECTION("SynchronzieOnMatchedPair")
       {
          std::vector<Token> tokens{
-            Token(TokenType::SubscopeBegin, TextPos(0, 0), 2),
-            Token(TokenType::SubscopeBegin, TextPos(0, 2), 2),
-            Token(TokenType::SubScopeEnd, TextPos(0, 4), 2),
-            Token(TokenType::SubScopeEnd, TextPos(0, 6), 2),
-            Token(TokenType::EndOfFile, TextPos(0, 8), 0)
+            Token(TokenType::SubscopeBegin, TextPos(0, 0, 0), 2),
+            Token(TokenType::SubscopeBegin, TextPos(0, 2, 2), 2),
+            Token(TokenType::SubScopeEnd, TextPos(0, 4, 4), 2),
+            Token(TokenType::SubScopeEnd, TextPos(0, 6, 6), 2),
+            Token(TokenType::EndOfFile, TextPos(0, 8, 8), 0)
          };
          Subparser parser(tokens);
 
@@ -207,10 +207,10 @@ namespace {
       SECTION("FailSynchronzieOnMatchedPair - Mismatched Pairs")
       {
          std::vector<Token> tokens{
-            Token(TokenType::SubscopeBegin, TextPos(0, 0), 2),
-            Token(TokenType::SubscopeBegin, TextPos(0, 2), 2),
-            Token(TokenType::SubScopeEnd, TextPos(0, 4), 2),
-            Token(TokenType::EndOfFile, TextPos(0, 8), 0)
+            Token(TokenType::SubscopeBegin, TextPos(0, 0, 0), 2),
+            Token(TokenType::SubscopeBegin, TextPos(0, 2, 2), 2),
+            Token(TokenType::SubScopeEnd, TextPos(0, 4, 4), 2),
+            Token(TokenType::EndOfFile, TextPos(0, 8, 8), 0)
          };
          Subparser parser(tokens);
 

@@ -15,7 +15,7 @@ TEST_CASE("Test Parser Parts")
 		SECTION("Ok")
 		{
 			std::vector<Token> tokens{
-				Token(TokenType::Symbol, TextPos(0, 0), 2)
+				Token(TokenType::Symbol, TextPos(0, 0, 0), 2)
 			};
 			Subparser parser(tokens);
 
@@ -28,7 +28,7 @@ TEST_CASE("Test Parser Parts")
 		SECTION("Failure Wrong Token")
 		{
 			std::vector<Token> tokens{
-				Token(TokenType::Literal, TextPos(0, 0), 2)
+				Token(TokenType::Literal, TextPos(0, 0, 0), 2)
 			};
 			Subparser parser(tokens);
 			
@@ -46,9 +46,9 @@ TEST_CASE("Test Parser Parts")
 		SECTION("Ok")
 		{
 			std::vector<Token> tokens{
-				Token(TokenType::Indent, TextPos(0, 0), 2),
-				Token(TokenType::Indent, TextPos(0, 2), 2),
-				Token(TokenType::Symbol, TextPos(0, 4), 2)
+				Token(TokenType::Indent, TextPos(0, 0, 0), 2),
+				Token(TokenType::Indent, TextPos(0, 2, 2), 2),
+				Token(TokenType::Symbol, TextPos(0, 4, 4), 2)
 			};
 			Subparser parser(tokens);
 
@@ -61,8 +61,8 @@ TEST_CASE("Test Parser Parts")
 		SECTION("Failure Wrong Token")
 		{
 			std::vector<Token> tokens{
-				Token(TokenType::Indent, TextPos(0, 2), 2),
-				Token(TokenType::Literal, TextPos(0, 0), 2)
+				Token(TokenType::Indent, TextPos(0, 2, 2), 2),
+				Token(TokenType::Literal, TextPos(0, 0, 0), 2)
 			};
 			Subparser parser(tokens);
 
@@ -81,7 +81,7 @@ TEST_CASE("Test Parser Parts")
 		SECTION("Ok Right")
 		{
 			std::vector<Token> tokens{
-				Token(TokenType::Operator, TextPos(0, 0), 2)
+				Token(TokenType::Operator, TextPos(0, 0, 0), 2)
 			};
 			Subparser parser(tokens);
 
@@ -94,7 +94,7 @@ TEST_CASE("Test Parser Parts")
 		SECTION("Ok Wrong")
 		{
 			std::vector<Token> tokens{
-				Token(TokenType::Symbol, TextPos(0, 0), 2)
+				Token(TokenType::Symbol, TextPos(0, 0, 0), 2)
 			};
 			Subparser parser(tokens);
 
@@ -112,8 +112,8 @@ TEST_CASE("Test Parser Parts")
 		SECTION("Ok")
 		{
 			std::vector<Token> tokens{
-				Token(TokenType::Operator, TextPos(0, 0), 1),
-				Token(TokenType::Symbol, TextPos(0, 1), 1),
+				Token(TokenType::Operator, TextPos(0, 0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1, 1), 1),
 			};
 
 			Subparser parser(tokens);
@@ -127,8 +127,8 @@ TEST_CASE("Test Parser Parts")
 		SECTION("Mismatch Last")
 		{
 			std::vector<Token> tokens{
-				Token(TokenType::Operator, TextPos(0, 0), 1),
-				Token(TokenType::Operator, TextPos(0, 1), 1),
+				Token(TokenType::Operator, TextPos(0, 0, 0), 1),
+				Token(TokenType::Operator, TextPos(0, 1, 1), 1),
 			};
 
 			Subparser parser(tokens);
@@ -143,8 +143,8 @@ TEST_CASE("Test Parser Parts")
 		SECTION("Mismatch First")
 		{
 			std::vector<Token> tokens{
-				Token(TokenType::Symbol, TextPos(0, 0), 1),
-				Token(TokenType::Operator, TextPos(0, 1), 1),
+				Token(TokenType::Symbol, TextPos(0, 0, 0), 1),
+				Token(TokenType::Operator, TextPos(0, 1, 1), 1),
 			};
 
 			Subparser parser(tokens);
@@ -163,7 +163,7 @@ TEST_CASE("Test Parser Parts")
 			Sequence<Peek<Is<TokenType::Symbol>>, Is<TokenType::Symbol>> element;
 
 			std::vector<Token> tokens{
-				Token(TokenType::Symbol, TextPos(0, 0), 2)
+				Token(TokenType::Symbol, TextPos(0, 0, 0), 2)
 			};
 			Subparser parser(tokens);
 
@@ -177,7 +177,7 @@ TEST_CASE("Test Parser Parts")
 			Sequence<Peek<Is<TokenType::Literal>>, Is<TokenType::Symbol>> element;
 
 			std::vector<Token> tokens{
-				Token(TokenType::Symbol, TextPos(0, 0), 2)
+				Token(TokenType::Symbol, TextPos(0, 0, 0), 2)
 			};
 			Subparser parser(tokens);
 
@@ -193,7 +193,7 @@ TEST_CASE("Test Parser Parts")
 		SECTION("Ok Zero")
 		{
 			std::vector<Token> tokens{
-				Token(TokenType::Symbol, TextPos(0, 1), 1),
+				Token(TokenType::Symbol, TextPos(0, 1, 1), 1),
 			};
 
 			Subparser parser(tokens);
@@ -206,9 +206,9 @@ TEST_CASE("Test Parser Parts")
 		SECTION("Ok Once")
 		{
 			std::vector<Token> tokens{
-				Token(TokenType::Operator, TextPos(0, 0), 1),
-				Token(TokenType::Symbol, TextPos(0, 1), 1),
-				Token(TokenType::Seperator, TextPos(0, 2), 1),
+				Token(TokenType::Operator, TextPos(0, 0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1, 1), 1),
+				Token(TokenType::Seperator, TextPos(0, 2, 2), 1),
 			};
 
 			Subparser parser(tokens);
@@ -221,11 +221,11 @@ TEST_CASE("Test Parser Parts")
 		SECTION("Ok Twice")
 		{
 			std::vector<Token> tokens{
-				Token(TokenType::Operator, TextPos(0, 0), 1),
-				Token(TokenType::Symbol, TextPos(0, 1), 1),
-				Token(TokenType::Operator, TextPos(0, 2), 1),
-				Token(TokenType::Symbol, TextPos(0, 3), 1),
-				Token(TokenType::Seperator, TextPos(0, 4), 1),
+				Token(TokenType::Operator, TextPos(0, 0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1, 1), 1),
+				Token(TokenType::Operator, TextPos(0, 2, 2), 1),
+				Token(TokenType::Symbol, TextPos(0, 3, 3), 1),
+				Token(TokenType::Seperator, TextPos(0, 4, 4), 1),
 			};
 
 			Subparser parser(tokens);
@@ -238,10 +238,10 @@ TEST_CASE("Test Parser Parts")
 		SECTION("Fail")
 		{
 			std::vector<Token> tokens{
-				Token(TokenType::Operator, TextPos(0, 0), 1),
-				Token(TokenType::Symbol, TextPos(0, 1), 1),
-				Token(TokenType::Operator, TextPos(0, 2), 1),
-				Token(TokenType::Seperator, TextPos(0, 3), 1),
+				Token(TokenType::Operator, TextPos(0, 0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1, 1), 1),
+				Token(TokenType::Operator, TextPos(0, 2, 2), 1),
+				Token(TokenType::Seperator, TextPos(0, 3, 3), 1),
 			};
 
 			Subparser parser(tokens);
@@ -260,7 +260,7 @@ TEST_CASE("Test Parser Parts")
 		SECTION("Ok Zero")
 		{
 			std::vector<Token> tokens{
-				Token(TokenType::Symbol, TextPos(0, 1), 1),
+				Token(TokenType::Symbol, TextPos(0, 1, 1), 1),
 			};
 
 			Subparser parser(tokens);
@@ -274,9 +274,9 @@ TEST_CASE("Test Parser Parts")
 		SECTION("Ok Once")
 		{
 			std::vector<Token> tokens{
-				Token(TokenType::Operator, TextPos(0, 0), 1),
-				Token(TokenType::Symbol, TextPos(0, 1), 1),
-				Token(TokenType::Symbol, TextPos(0, 2), 1),
+				Token(TokenType::Operator, TextPos(0, 0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1, 1), 1),
+				Token(TokenType::Symbol, TextPos(0, 2, 2), 1),
 			};
 
 			Subparser parser(tokens);
@@ -290,10 +290,10 @@ TEST_CASE("Test Parser Parts")
 		SECTION("Ok Once With Seperator")
 		{
 			std::vector<Token> tokens{
-				Token(TokenType::Operator, TextPos(0, 0), 1),
-				Token(TokenType::Symbol, TextPos(0, 1), 1),
-				Token(TokenType::Seperator, TextPos(0, 2), 1),
-				Token(TokenType::Symbol, TextPos(0, 3), 1)
+				Token(TokenType::Operator, TextPos(0, 0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1, 1), 1),
+				Token(TokenType::Seperator, TextPos(0, 2, 2), 1),
+				Token(TokenType::Symbol, TextPos(0, 3, 3), 1)
 			};
 
 			Subparser parser(tokens);
@@ -307,12 +307,12 @@ TEST_CASE("Test Parser Parts")
 		SECTION("Ok Twice")
 		{
 			std::vector<Token> tokens{
-				Token(TokenType::Operator, TextPos(0, 0), 1),
-				Token(TokenType::Symbol, TextPos(0, 1), 1),
-				Token(TokenType::Seperator, TextPos(0, 2), 1),
-				Token(TokenType::Operator, TextPos(0, 3), 1),
-				Token(TokenType::Symbol, TextPos(0, 4), 1),
-				Token(TokenType::Symbol, TextPos(0, 5), 1)
+				Token(TokenType::Operator, TextPos(0, 0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1, 1), 1),
+				Token(TokenType::Seperator, TextPos(0, 2, 2), 1),
+				Token(TokenType::Operator, TextPos(0, 3, 3), 1),
+				Token(TokenType::Symbol, TextPos(0, 4, 4), 1),
+				Token(TokenType::Symbol, TextPos(0, 5, 5), 1)
 			};
 
 			Subparser parser(tokens);
@@ -325,13 +325,13 @@ TEST_CASE("Test Parser Parts")
 		SECTION("Ok Twice With Seperator")
 		{
 			std::vector<Token> tokens{
-				Token(TokenType::Operator, TextPos(0, 0), 1),
-				Token(TokenType::Symbol, TextPos(0, 1), 1),
-				Token(TokenType::Seperator, TextPos(0, 2), 1),
-				Token(TokenType::Operator, TextPos(0, 3), 1),
-				Token(TokenType::Symbol, TextPos(0, 4), 1),
-				Token(TokenType::Seperator, TextPos(0, 5), 1),
-				Token(TokenType::Symbol, TextPos(0, 6), 1)
+				Token(TokenType::Operator, TextPos(0, 0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1, 1), 1),
+				Token(TokenType::Seperator, TextPos(0, 2, 2), 1),
+				Token(TokenType::Operator, TextPos(0, 3, 3), 1),
+				Token(TokenType::Symbol, TextPos(0, 4, 4), 1),
+				Token(TokenType::Seperator, TextPos(0, 5, 5), 1),
+				Token(TokenType::Symbol, TextPos(0, 6, 6), 1)
 			};
 
 			Subparser parser(tokens);
@@ -344,10 +344,10 @@ TEST_CASE("Test Parser Parts")
 		SECTION("Ok Once due to Missing Seperator")
 		{
 			std::vector<Token> tokens{
-				Token(TokenType::Operator, TextPos(0, 0), 1),
-				Token(TokenType::Symbol, TextPos(0, 1), 1),
-				Token(TokenType::Operator, TextPos(0, 2), 1),
-				Token(TokenType::Symbol, TextPos(0, 3), 1)
+				Token(TokenType::Operator, TextPos(0, 0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1, 1), 1),
+				Token(TokenType::Operator, TextPos(0, 2, 2), 1),
+				Token(TokenType::Symbol, TextPos(0, 3, 3), 1)
 			};
 
 			Subparser parser(tokens);
@@ -366,8 +366,8 @@ TEST_CASE("Test Parser Parts")
 			Sequence<Indented, Is<TokenType::Symbol>> element;
 
 			std::vector<Token> tokens{
-				Token(TokenType::Indent, TextPos(0, 0), 1),
-				Token(TokenType::Symbol, TextPos(0, 1), 1),
+				Token(TokenType::Indent, TextPos(0, 0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1, 1), 1),
 			};
 
 			Subparser parser(tokens);
@@ -381,11 +381,11 @@ TEST_CASE("Test Parser Parts")
 			Repeats< Sequence<Indented, Is<TokenType::Symbol>>> element;
 
 			std::vector<Token> tokens{
-				Token(TokenType::Indent, TextPos(0, 0), 1),
-				Token(TokenType::Symbol, TextPos(0, 1), 1),
-   			Token(TokenType::Indent, TextPos(0, 2), 2),
-				Token(TokenType::Symbol, TextPos(0, 3), 1),
-				Token(TokenType::EndOfFile, TextPos(0, 4), 0),
+				Token(TokenType::Indent, TextPos(0, 0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1, 1), 1),
+   			Token(TokenType::Indent, TextPos(0, 2, 2), 2),
+				Token(TokenType::Symbol, TextPos(0, 3, 3), 1),
+				Token(TokenType::EndOfFile, TextPos(0, 4, 4), 0),
 			};
 
 			Subparser parser(tokens);
@@ -399,11 +399,11 @@ TEST_CASE("Test Parser Parts")
 			Sequence<Indented, Is<TokenType::Symbol>, Indented, Is<TokenType::Symbol>> element;
 
 			std::vector<Token> tokens{
-				Token(TokenType::Indent, TextPos(0, 0), 1),
-				Token(TokenType::Symbol, TextPos(0, 1), 1),
-				Token(TokenType::Indent, TextPos(0, 2), 1),
-				Token(TokenType::Symbol, TextPos(0, 3), 1),
-       		Token(TokenType::EndOfFile, TextPos(0, 4), 0),
+				Token(TokenType::Indent, TextPos(0, 0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1, 1), 1),
+				Token(TokenType::Indent, TextPos(0, 2, 2), 1),
+				Token(TokenType::Symbol, TextPos(0, 3, 3), 1),
+       		Token(TokenType::EndOfFile, TextPos(0, 4, 4), 0),
 			};
 
 			Subparser parser(tokens);
@@ -421,10 +421,10 @@ TEST_CASE("Test Parser Parts")
 			Sequence<Indented, Is<TokenType::Symbol>, Dedented, Is<TokenType::Symbol>> element;
 
 			std::vector<Token> tokens{
-				Token(TokenType::Indent, TextPos(0, 0), 1),
-				Token(TokenType::Symbol, TextPos(0, 1), 1),
-				Token(TokenType::Indent, TextPos(0, 0), 0),
-				Token(TokenType::Symbol, TextPos(0, 1), 1),
+				Token(TokenType::Indent, TextPos(0, 0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1, 1), 1),
+				Token(TokenType::Indent, TextPos(0, 0, 0), 0),
+				Token(TokenType::Symbol, TextPos(0, 1, 1), 1),
 			};
 
 			Subparser parser(tokens);
@@ -438,13 +438,13 @@ TEST_CASE("Test Parser Parts")
 			Sequence<Repeats<Indented>, Repeats<Sequence<Dedented, Is<TokenType::Symbol>>>> element;
 
 			std::vector<Token> tokens{
-				Token(TokenType::Indent, TextPos(0, 0), 1),
-				Token(TokenType::Indent, TextPos(0, 0), 2),
-				Token(TokenType::Indent, TextPos(0, 0), 1),
-				Token(TokenType::Symbol, TextPos(0, 1), 1),
-				Token(TokenType::Indent, TextPos(0, 2), 0),
-				Token(TokenType::Symbol, TextPos(0, 3), 1),
-				Token(TokenType::EndOfFile, TextPos(0, 4), 0),
+				Token(TokenType::Indent, TextPos(0, 0, 0), 1),
+				Token(TokenType::Indent, TextPos(0, 0, 0), 2),
+				Token(TokenType::Indent, TextPos(0, 0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1, 1), 1),
+				Token(TokenType::Indent, TextPos(0, 2, 2), 0),
+				Token(TokenType::Symbol, TextPos(0, 3, 3), 1),
+				Token(TokenType::EndOfFile, TextPos(0, 4, 4), 0),
 			};
 
 			Subparser parser(tokens);
@@ -458,10 +458,10 @@ TEST_CASE("Test Parser Parts")
 			Sequence<Indented, Is<TokenType::Symbol>, Dedented, Is<TokenType::Symbol>> element;
 
 			std::vector<Token> tokens{
-				Token(TokenType::Indent, TextPos(0, 0), 1),
-				Token(TokenType::Symbol, TextPos(0, 1), 1),
-				Token(TokenType::Indent, TextPos(0, 0), 1),
-				Token(TokenType::Symbol, TextPos(0, 1), 1),
+				Token(TokenType::Indent, TextPos(0, 0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1, 1), 1),
+				Token(TokenType::Indent, TextPos(0, 0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1, 1), 1),
 			};
 
 			Subparser parser(tokens);
@@ -475,10 +475,10 @@ TEST_CASE("Test Parser Parts")
 			Sequence<Indented, Is<TokenType::Symbol>, Dedented, Is<TokenType::Symbol>> element;
 
 			std::vector<Token> tokens{
-				Token(TokenType::Indent, TextPos(0, 0), 1),
-				Token(TokenType::Symbol, TextPos(0, 1), 1),
-				Token(TokenType::Indent, TextPos(0, 0), 2),
-				Token(TokenType::Symbol, TextPos(0, 1), 1),
+				Token(TokenType::Indent, TextPos(0, 0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1, 1), 1),
+				Token(TokenType::Indent, TextPos(0, 0, 0), 2),
+				Token(TokenType::Symbol, TextPos(0, 1, 1), 1),
 			};
 
 			Subparser parser(tokens);
@@ -498,10 +498,10 @@ TEST_CASE("Test Parser Parts")
 			Sequence<Indented, Is<TokenType::Symbol>, NoIndent, Is<TokenType::Symbol>> element;
 
 			std::vector<Token> tokens{
-				Token(TokenType::Indent, TextPos(0, 0), 1),
-				Token(TokenType::Symbol, TextPos(0, 1), 1),
-				Token(TokenType::Indent, TextPos(0, 0), 1),
-				Token(TokenType::Symbol, TextPos(0, 1), 1),
+				Token(TokenType::Indent, TextPos(0, 0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1, 1), 1),
+				Token(TokenType::Indent, TextPos(0, 0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1, 1), 1),
 			};
 
 			Subparser parser(tokens);
@@ -515,10 +515,10 @@ TEST_CASE("Test Parser Parts")
 			Sequence<Indented, Is<TokenType::Symbol>, NoIndent, Is<TokenType::Symbol>> element;
 
 			std::vector<Token> tokens{
-				Token(TokenType::Indent, TextPos(0, 0), 1),
-				Token(TokenType::Symbol, TextPos(0, 1), 1),
-				Token(TokenType::Indent, TextPos(0, 0), 2),
-				Token(TokenType::Symbol, TextPos(0, 1), 1),
+				Token(TokenType::Indent, TextPos(0, 0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1, 1), 1),
+				Token(TokenType::Indent, TextPos(0, 0, 0), 2),
+				Token(TokenType::Symbol, TextPos(0, 1, 1), 1),
 			};
 
 			Subparser parser(tokens);
@@ -532,10 +532,10 @@ TEST_CASE("Test Parser Parts")
 			Sequence<Indented, Is<TokenType::Symbol>, NoIndent, Is<TokenType::Symbol>> element;
 
 			std::vector<Token> tokens{
-				Token(TokenType::Indent, TextPos(0, 0), 1),
-				Token(TokenType::Symbol, TextPos(0, 1), 1),
-				Token(TokenType::Indent, TextPos(0, 0), 0),
-				Token(TokenType::Symbol, TextPos(0, 1), 1),
+				Token(TokenType::Indent, TextPos(0, 0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1, 1), 1),
+				Token(TokenType::Indent, TextPos(0, 0, 0), 0),
+				Token(TokenType::Symbol, TextPos(0, 1, 1), 1),
 			};
 
 			Subparser parser(tokens);
@@ -549,11 +549,11 @@ TEST_CASE("Test Parser Parts")
 			Sequence<Indented, Indented, Is<TokenType::Symbol>, Peek<Dedented>, NoIndent, Is<TokenType::Symbol>> element;
 
 			std::vector<Token> tokens{
-				Token(TokenType::Indent, TextPos(0, 0), 0),
-				Token(TokenType::Indent, TextPos(0, 0), 2),
-				Token(TokenType::Symbol, TextPos(0, 1), 1),
-				Token(TokenType::Indent, TextPos(0, 0), 1),
-				Token(TokenType::Symbol, TextPos(0, 1), 1),
+				Token(TokenType::Indent, TextPos(0, 0, 0), 0),
+				Token(TokenType::Indent, TextPos(0, 0, 0), 2),
+				Token(TokenType::Symbol, TextPos(0, 1, 1), 1),
+				Token(TokenType::Indent, TextPos(0, 0, 0), 1),
+				Token(TokenType::Symbol, TextPos(0, 1, 1), 1),
 			};
 
 			Subparser parser(tokens);
@@ -574,7 +574,7 @@ TEST_CASE("Test Parser Parts")
 		SECTION("Ok First")
 		{
 			std::vector<Token> tokens{
-				Token(TokenType::Operator, TextPos(0, 1), 1),
+				Token(TokenType::Operator, TextPos(0, 1, 1), 1),
 			};
 
 			Subparser parser(tokens);
@@ -587,7 +587,7 @@ TEST_CASE("Test Parser Parts")
 		SECTION("Ok Third")
 		{
 			std::vector<Token> tokens{
-				Token(TokenType::If, TextPos(0, 1), 1),
+				Token(TokenType::If, TextPos(0, 1, 1), 1),
 			};
 
 			Subparser parser(tokens);
@@ -600,10 +600,10 @@ TEST_CASE("Test Parser Parts")
 		SECTION("Ok Second")
 		{
 			std::vector<Token> tokens{
-				Token(TokenType::Indent, TextPos(0, 1), 1),
-				Token(TokenType::For, TextPos(0, 2), 1),
-				Token(TokenType::For, TextPos(0, 3), 1),
-				Token(TokenType::Symbol, TextPos(0, 4), 1)
+				Token(TokenType::Indent, TextPos(0, 1, 1), 1),
+				Token(TokenType::For, TextPos(0, 2, 2), 1),
+				Token(TokenType::For, TextPos(0, 3, 3), 1),
+				Token(TokenType::Symbol, TextPos(0, 4, 4), 1)
 			};
 
 			Subparser parser(tokens);
@@ -617,7 +617,7 @@ TEST_CASE("Test Parser Parts")
 		SECTION("Not Ok First")
 		{
 			std::vector<Token> tokens{
-				Token(TokenType::SubscopeBegin, TextPos(0, 1), 1)
+				Token(TokenType::SubscopeBegin, TextPos(0, 1, 1), 1)
 			};
 
 			Subparser parser(tokens);
@@ -631,10 +631,10 @@ TEST_CASE("Test Parser Parts")
 		SECTION("Not Ok Second")
 		{
 			std::vector<Token> tokens{
-				Token(TokenType::Indent, TextPos(0, 1), 1),
-				Token(TokenType::For, TextPos(0, 2), 1),
-				Token(TokenType::For, TextPos(0, 3), 1),
-				Token(TokenType::Operator, TextPos(0, 4), 1)
+				Token(TokenType::Indent, TextPos(0, 1, 1), 1),
+				Token(TokenType::For, TextPos(0, 2, 2), 1),
+				Token(TokenType::For, TextPos(0, 3, 3), 1),
+				Token(TokenType::Operator, TextPos(0, 4, 4), 1)
 			};
 
 			Subparser parser(tokens);

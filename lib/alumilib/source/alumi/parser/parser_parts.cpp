@@ -23,6 +23,11 @@ namespace alumi
          return child;
       }
 
+      const std::vector<Token>& Subparser::tokens() const
+      {
+         return *m_token_source;
+      }
+
 
       Token Subparser::advance()
       {

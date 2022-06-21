@@ -59,10 +59,10 @@ namespace {
       {
          Nodes nodes;
 
-         nodes.insert(nodes.begin(), Node(Expression(), {0, 3}, { 0, 4 }));
-         nodes.insert(nodes.begin(), Node(Expression(), {0, 2 }, { 0, 3 }));
-         nodes.insert(nodes.begin(), Node(Error(), { 0, 1 }, { 0, 2 }));
-         nodes.insert(nodes.begin(), Node(ModuleRoot(nodes), { 0, 1 }, { 0, 4 }));
+         nodes.insert(nodes.begin(), Node(Expression(), 3, 4));
+         nodes.insert(nodes.begin(), Node(Expression(), 2, 3));
+         nodes.insert(nodes.begin(), Node(Statement(), 1, 2));
+         nodes.insert(nodes.begin(), Node(ModuleRoot(nodes), 0, 1));
  
          
          ModuleTree tree(nodes);
@@ -75,7 +75,7 @@ namespace {
 
          REQUIRE(type_gatherer.indices == std::vector<std::type_index>{
             typeid(ModuleRoot),
-            typeid(Error),
+            typeid(Statement),
             typeid(Expression),
             typeid(Expression),
          });
