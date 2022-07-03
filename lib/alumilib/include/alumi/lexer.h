@@ -1,6 +1,7 @@
 #pragma once
 
 #include "alumi/lexer/lexer_detail.h"
+#include "alumi/lexer/lexed_text.h"
 
 #include <vector>
 #include <optional>
@@ -75,10 +76,9 @@ namespace alumi
       Lexer(PatternTs... patterns)
          : m_pattern(patterns...)
       {
-
       }
 
-      Tokens lex(const std::vector<UnicodeCodePoint>& text)
+      LexedText lex(const std::vector<UnicodeCodePoint>& text)
       {
          static const std::vector<UnicodeCodePoint> indention_chars({ 0x20, 0x09 });
 
@@ -164,9 +164,13 @@ namespace alumi
             LexerResult res = terminate_codepoint(cur_token_start, pos - cur_token_start, tokens, line, cur_token_start - line_start, pos - line_start);
             handle_lexer_result(res);
          }
-
-         tokens.push_back(Token(TokenType::EndOfFile, TextPos(line, cur_token_start - line_start, cur_token_start), 0));
-         return tokens;
+         // Ensure that there is a final end of line token in order for the presence of terminating newline to not affect compiler behaviour
+         if (tokens.size() == 0 || tokens.back().type() != TokenType::Linebreak)
+         {
+            tokens.push_back(Token(TokenType::Linebreak, TextPos(line, cur_token_start - line_start, cur_token_start), 0));
+         }
+         tokens.push_back(Token(TokenType::EndOfFile, TextPos(line, pos - line_start, pos), 0));
+         return LexedText(text, tokens);
       }
    private:
       class CompletePattern

@@ -3,7 +3,7 @@
 #include "alumi/parser.h"
 #include "alumi/lexer/alumi_lexicon.h"
 
-#include "alumi/syntax_tree/util_ops.h"
+#include "alumi/syntax_tree/tree_utiltiy_ops.h"
 
 #include <fstream>
 
@@ -33,10 +33,10 @@ namespace {
 		return code_points;
 	}
 
-	void print_output(const std::string& filename, ModuleTree& tree, const std::vector<UnicodeCodePoint>& text, const std::vector<Token>& tokens)
+	void print_output(const std::string& filename, SyntaxTree& tree, const std::vector<UnicodeCodePoint>& text, const std::vector<Token>& tokens)
 	{
-		TreeOpRepresentTree representer(&text, &tokens);
-		ModuleTreeWalker walker(tree);
+		TreeOpRepresentTree representer(&tree);
+		SyntaxTreeWalker walker(tree);
 
 		walker.walk_from_root(representer);
 
@@ -55,16 +55,15 @@ TEST_CASE("Test Main Func")
 		"   noop"
 		"");
 
-		auto tokens = default_lexer.lex(code_points);
+		auto lexed_text = default_lexer.lex(code_points);
 
 		AlumiParser parser;
-		ParseResult res = parser.parse(tokens);
+		auto tree = parser.parse(lexed_text);
 
-		ModuleTree tree(res.get_nodes());
-		print_output("test_main_func_ok.txt", tree, code_points, tokens);
+		print_output("test_main_func_ok.txt", tree, code_points, lexed_text.tokens());
 
-		REQUIRE(res.get_type() == ParseResult::Type::Success);
-		REQUIRE(res.get_consumed() == 15);
+		REQUIRE(tree.parse_result().get_type() == ParseResult::Type::Success);
+		REQUIRE(tree.parse_result().get_consumed() == 16);
 
 
 	}
@@ -75,16 +74,15 @@ TEST_CASE("Test Main Func")
 			"   noop"
 			"");
 
-		auto tokens = default_lexer.lex(code_points);
+		auto lexed_text = default_lexer.lex(code_points);
 
 		AlumiParser parser;
-		ParseResult res = parser.parse(tokens);
+		auto tree = parser.parse(lexed_text);
 
-		ModuleTree tree(res.get_nodes());
-		print_output("test_main_func_not_ok.txt", tree, code_points, tokens);
+		print_output("test_main_func_not_ok.txt", tree, code_points, lexed_text.tokens());
 
-		REQUIRE(res.get_type() == ParseResult::Type::RecoveredFailure);
-		REQUIRE(res.get_consumed() == 15);
+		REQUIRE(tree.parse_result().get_type() == ParseResult::Type::RecoveredFailure);
+		REQUIRE(tree.parse_result().get_consumed() == 16);
 
 	}
 }
@@ -97,16 +95,15 @@ TEST_CASE("Test integer Func")
 			"   noop"
 			"");
 
-		auto tokens = default_lexer.lex(code_points);
+		auto lexed_text = default_lexer.lex(code_points);
 
 		AlumiParser parser;
-		ParseResult res = parser.parse(tokens);
+		auto tree = parser.parse(lexed_text);
 
-		ModuleTree tree(res.get_nodes());
-		print_output("test_integer_func_ok.txt", tree, code_points, tokens);
+		print_output("test_integer_func_ok.txt", tree, code_points, lexed_text.tokens());
 
-		REQUIRE(res.get_type() == ParseResult::Type::Success);
-		REQUIRE(res.get_consumed() == 15);
+		REQUIRE(tree.parse_result().get_type() == ParseResult::Type::Success);
+		REQUIRE(tree.parse_result().get_consumed() == 16);
 	}
 	SECTION("Recoverable Error")
 	{
@@ -115,16 +112,15 @@ TEST_CASE("Test integer Func")
 			"   noop"
 			"");
 
-		auto tokens = default_lexer.lex(code_points);
+		auto lexed_text = default_lexer.lex(code_points);
 
 		AlumiParser parser;
-		ParseResult res = parser.parse(tokens);
+		auto tree = parser.parse(lexed_text);
 
-		ModuleTree tree(res.get_nodes());
-		print_output("test_integer_func_not_ok.txt", tree, code_points, tokens);
+		print_output("test_integer_func_not_ok.txt", tree, code_points, lexed_text.tokens());
 
-		REQUIRE(res.get_type() == ParseResult::Type::RecoveredFailure);
-		REQUIRE(res.get_consumed() == 15);
+		REQUIRE(tree.parse_result().get_type() == ParseResult::Type::RecoveredFailure);
+		REQUIRE(tree.parse_result().get_consumed() == 16);
 	}
 }
 
@@ -134,30 +130,28 @@ TEST_CASE("Test primitive decleration")
 	{
 		auto code_points = to_code_points("foo := 5");
 
-		auto tokens = default_lexer.lex(code_points);
+		auto lexed_text = default_lexer.lex(code_points);
 
 		AlumiParser parser;
-		ParseResult res = parser.parse(tokens);
+		auto tree = parser.parse(lexed_text);
 
-		ModuleTree tree(res.get_nodes());
-		print_output("test_prim_dec_integer_ok.txt", tree, code_points, tokens);
+		print_output("test_prim_dec_integer_ok.txt", tree, code_points, lexed_text.tokens());
 
-		REQUIRE(res.get_type() == ParseResult::Type::Success);
-		REQUIRE(res.get_consumed() == 5);
+		REQUIRE(tree.parse_result().get_type() == ParseResult::Type::Success);
+		REQUIRE(tree.parse_result().get_consumed() == 6);
 	}
 	SECTION("Recovered Error - int")
 	{
 		auto code_points = to_code_points("foo := 5<<<");
 
-		auto tokens = default_lexer.lex(code_points);
+		auto lexed_text = default_lexer.lex(code_points);
 
 		AlumiParser parser;
-		ParseResult res = parser.parse(tokens);
+		auto tree = parser.parse(lexed_text);
 
-		ModuleTree tree(res.get_nodes());
-		print_output("test_prim_dec_integer_not_ok.txt", tree, code_points, tokens);
+		print_output("test_prim_dec_integer_not_ok.txt", tree, code_points, lexed_text.tokens());
 
-		REQUIRE(res.get_type() == ParseResult::Type::RecoveredFailure);
-		REQUIRE(res.get_consumed() == 5);
+		REQUIRE(tree.parse_result().get_type() == ParseResult::Type::RecoveredFailure);
+		REQUIRE(tree.parse_result().get_consumed() == 7);
 	}
 }

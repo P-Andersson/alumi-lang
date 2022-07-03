@@ -2,6 +2,9 @@
 
 #include "alumi/parser/parser_parts.h"
 
+#include "alumi/parser/data.h"
+#include "alumi/syntax_tree.h"
+
 namespace alumi
 {
 	namespace syntax_tree
@@ -18,5 +21,13 @@ namespace alumi
 		//! @precondition result mest of type Failure, Success or even RecoveredFailure is not vaild
 		//! 
 		size_t get_failure_token_index(const ::alumi::parser::ParseResult& result);
+
+	  	//!
+		//! Converts a single node to the source text, replaces "in-the-middle" child nodes with " ... ". 
+		//! May be empty if it did not consume any tokens by itself
+		//! 
+		std::vector<UnicodeCodePoint> as_string(const Node& node, const SyntaxTree& tree);
+		//! Converts a single node to the source text it consumed
+		std::vector<UnicodeCodePoint> as_string_deep(const Node& node, const SyntaxTree& tree);
 	}
 }

@@ -37,7 +37,13 @@ namespace alumi
             {
                return Node(Error(res.get_nodes()), res);
             }
-            return Node(syntax_tree::FunctionDefinition(), res);
+            std::optional<Node> return_type = std::nullopt;
+            if (res.get_nodes().size() > 1)
+            {
+               return_type = res.get_nodes()[1];
+            }
+
+            return Node(syntax_tree::FunctionDecleration(res.get_nodes()[0], return_type), res);
 
          };
          RULE(FuncDeclare, ParseRule<
@@ -48,6 +54,19 @@ namespace alumi
                      Optional<Sequence<Is<TokenType::ReturnOp>, Is<TokenType::Symbol>>>, 
                      Is<TokenType::ScopeBegin>, Is<TokenType::Linebreak>
             >, SynchronizeOnToken<TokenType::Linebreak>, build_func_decleration>);
+
+         std::optional<Node> build_func_definition(const ParseResult& res)
+         {
+            if (res.get_type() == ParseResult::Type::Failure)
+            {
+               return Node(Error(res.get_nodes()), res);
+            }
+            const auto& dec = res.get_nodes()[0];
+            return Node(syntax_tree::FunctionDefinition(dec, res.get_nodes()[dec.recursive_child_count()]), res);
+
+         };
+         RULE(FuncDefine, ParseRule<
+            Sequence<FuncDeclare, CodeBlock>, SynchronizeOnToken<TokenType::Linebreak>, build_func_definition>);
          
          std::optional<Node> build_expression_node(const ParseResult& res)
          {
@@ -69,7 +88,7 @@ namespace alumi
             {
                return Node(Error(res.get_nodes()), res);
             }
-            return Node(syntax_tree::Assignment(), res);
+            return Node(syntax_tree::Assignment(res.get_nodes()[0]), res);
          };
 
          RULE(Assignment, 
@@ -77,11 +96,11 @@ namespace alumi
                Is<TokenType::Symbol>, 
                Is<TokenType::Assignment>,
                AnyOf<
-                  Sequence<FuncDeclare, CodeBlock>,
+                  FuncDefine,
                   Expression
                   >,
                EndOfLine
-            >, SynchronizeOnToken<TokenType::Assignment>, build_assignment_node>);
+            >, SynchronizeOnToken<TokenType::Linebreak>, build_assignment_node>);
 
          std::optional<Node> build_statement_node(const ParseResult& res)
          {
@@ -89,13 +108,13 @@ namespace alumi
             {
                return Node(Error(res.get_nodes()), res);
             }
-            return Node(syntax_tree::Statement(), res);
+            return Node(syntax_tree::Statement(res.get_nodes()), res);
          };
          RULE(Statement, ParseRule<
             AnyOf<
             Is<TokenType::Noop>,
             Assignment
-            >, SynchronizeOnToken<TokenType::Linebreak>, build_statement_node>);
+            >, NeverSynchroize, build_statement_node>);
 
          std::optional<Node> build_block_node(const ParseResult& res)
          {
@@ -137,10 +156,10 @@ namespace alumi
 
       }
 
-      ParseResult AlumiParser::parse(const std::vector<Token>& tokens) const
+      SyntaxTree AlumiParser::parse(const LexedText& text) const
       {
-         Subparser root_parser(tokens);
-         return Root::parse(root_parser);
+         Subparser root_parser(text.tokens());
+         return SyntaxTree(Root::parse(root_parser), &text);
       }
    }
 }

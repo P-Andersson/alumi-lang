@@ -1,6 +1,6 @@
 #pragma once
 
-#include "alumi/syntax_tree/modue_tree.h"
+#include "alumi/syntax_tree.h"
 
 #include <vector>
 #include <array>
@@ -10,71 +10,10 @@ namespace alumi
 {
 	namespace syntax_tree
 	{
-		class ModuleTree;
-		class ModuleTreeWalker;
+		class SyntaxTreeWalker;
 
 		template <typename FunctorT>
-		concept ModuleNodeOp = requires (FunctorT fun, ModuleTreeWalker& walker, Node& node) { fun(walker, node); };
-
-
-		//!
-		//! Reperesents a group of 0 or more child nodes, providing
-		//! sufficient information to iterate them
-		//! 
-		//! skips is the groups start index offset, counting 0 as the same node as the parent node
-		//! count is how many nodes it consists of 
-		//! 		 
-		class ChildGroup
-		{
-		public:
-			ChildGroup(size_t skips, size_t count);
-
-			size_t get_skips() const;
-			size_t get_count() const;
-
-		private:
-			size_t m_skips;
-			size_t m_count;
-		};
-
-		//!
-		//! Represents a set of serval child groups, where each group has its own meaning and purpose
-		//! 		 (ie, group 0 is function parameters, group 1 is return type
-		//! 
-		template<size_t Groups>
-		class ChildGroups
-		{
-		public:
-			ChildGroups(const std::array<ChildGroup, Groups>& groups)
-				: m_groups(groups)
-			{
-
-			}
-
-			size_t recursive_subnode_count() const
-			{
-				const ChildGroup& group = m_groups[Groups - 1];
-				return group.get_skips() + group.get_count();
-			}
-
-			ChildGroup& get_group(size_t index)
-			{
-				return m_groups[index];
-			}
-
-			const ChildGroup& get_group(size_t index) const
-			{
-				return m_groups[index];
-			}
-
-			size_t size() const
-			{
-				return m_groups.size();
-			}
-
-		private:
-			std::array<ChildGroup, Groups> m_groups;
-		};
+		concept NodeOp = requires (FunctorT fun, SyntaxTreeWalker & walker, Node& node) { fun(walker, node); };
 
 
 		//!
@@ -127,38 +66,40 @@ namespace alumi
 		};
 
 		//!
-		//! Walks a module tree, performing some operation on each node
+		//! Walks a syntax tree, performing some operation on each node
 		//! 
-		class ModuleTreeWalker
+		class SyntaxTreeWalker
 		{
 		public:
-			ModuleTreeWalker(ModuleTree& node_tree);
+			SyntaxTreeWalker(SyntaxTree& tree);
 
 
-			template <ModuleNodeOp FuncT>
+			template <NodeOp FuncT>
 			void walk_from_root(FuncT& func)
 			{
-				NodeView cur_view(m_node_tree.nodes());
+				NodeView cur_view(m_tree.nodes());
 				for (auto node = cur_view.begin(); node != cur_view.end(); ++node)
 				{
-					ModuleTreeWalker child(m_node_tree, node);
+					SyntaxTreeWalker child(m_tree, node);
 					func(child, *node);
 				}
 			}
 
-			template <ModuleNodeOp FuncT>
+			template <NodeOp FuncT>
 			void walk(FuncT& func, const ChildGroup& group)
 			{
-				NodeView cur_view(m_node_tree.nodes(), m_current_root_node, group);
-				for (auto node = cur_view.begin(); node != cur_view.end(); ++node)
+				NodeView cur_view(m_tree.nodes(), m_current_root_node, group);
+				auto begin = cur_view.begin();
+				auto end = cur_view.end();
+				for (auto node = begin; node != end; ++node)
 				{
-					ModuleTreeWalker child(m_node_tree, node);
+					SyntaxTreeWalker child(m_tree, node);
 					func(child, *node);
 				}
 			}
 		private:
-			ModuleTreeWalker(ModuleTree& node_tree, NodeView::iterator root_node);
-			ModuleTree& m_node_tree;
+			SyntaxTreeWalker(SyntaxTree& tree, NodeView::iterator root_node);
+			SyntaxTree& m_tree;
 
 			NodeView::iterator m_current_root_node;
 		};

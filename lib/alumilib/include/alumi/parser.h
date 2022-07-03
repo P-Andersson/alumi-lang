@@ -3,7 +3,7 @@
 #include <memory>
 
 #include "alumi/lexer.h"
-#include "alumi/parser/parser_parts.h"
+#include "alumi/syntax_tree.h"
 
 namespace alumi
 {
@@ -15,7 +15,7 @@ namespace alumi
          AlumiParser();
          ~AlumiParser();
 
-         ParseResult parse(const std::vector<Token>& tokens) const;
+         SyntaxTree parse(const LexedText& text) const;
 
       private:
       };

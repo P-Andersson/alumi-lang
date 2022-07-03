@@ -74,6 +74,7 @@ namespace alumi
       };
 
 
+
       template <typename T>
       concept SynchronizeT = requires (Subparser& parser){ T::do_synch(parser);  };
 

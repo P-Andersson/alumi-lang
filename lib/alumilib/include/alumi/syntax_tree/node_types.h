@@ -1,12 +1,16 @@
 #pragma once
 
 #include "alumi/lexer/token.h"
-#include "alumi/syntax_tree/tree_nodes.h"
+#include "alumi/syntax_tree/node_children.h"
+
+#include <optional>
 
 namespace alumi
 {
 	namespace syntax_tree
 	{
+		class Node;
+		using Nodes = std::vector<Node>;
 
 		class Error
 		{
@@ -37,6 +41,8 @@ namespace alumi
 		class Assignment
 		{
 		public:
+			Assignment(const Node& value);
+			ChildGroups<1> groups;
 		};
 
 		class IntegerLiteral
@@ -48,6 +54,9 @@ namespace alumi
 		class Statement
 		{
 		public:
+			Statement(const Nodes& children);
+
+			ChildGroups<1> groups;
 		private:
 		};
 
@@ -57,9 +66,21 @@ namespace alumi
 		private:
 		};
 
+		class FunctionDecleration
+		{
+		public:
+			FunctionDecleration(const Node& params, const std::optional<Node>& return_type);
+
+			ChildGroups<2> groups;
+		private:
+		};
+
 		class FunctionDefinition
 		{
 		public:
+			FunctionDefinition(const Node& decleration, const Node& code);
+
+			ChildGroups<2> groups;
 		private:
 		};
 

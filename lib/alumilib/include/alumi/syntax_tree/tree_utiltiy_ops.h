@@ -2,7 +2,7 @@
 
 #include "alumi/syntax_tree/tree_nodes.h"
 
-#include "alumi/lexer/token.h"
+#include "alumi/syntax_tree.h"
 #include "alumi/parser/data.h"
 
 #include <string>
@@ -16,12 +16,11 @@ namespace alumi
       public:
          std::string representation;
 
-         TreeOpRepresentTree(const std::vector<UnicodeCodePoint>* text, const std::vector<Token>* tokens);
+         TreeOpRepresentTree(const SyntaxTree* tree);
 
-         void operator()(ModuleTreeWalker& walker, Node& node);
+         void operator()(SyntaxTreeWalker& walker, Node& node);
       private:
-         const std::vector<UnicodeCodePoint>* m_text;
-         const std::vector<Token>* m_tokens;
+         const SyntaxTree* m_tree;
          size_t m_index = 0;
       };
    }

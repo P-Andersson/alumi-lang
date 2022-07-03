@@ -27,14 +27,14 @@ namespace {
    {
       SECTION("Test Span")
       {
-         Node node(Statement(), 4, 6);
+         Node node(Statement({}), 4, 6);
 
          REQUIRE(node.spans_tokens() == std::make_tuple(4, 6 ));
       }
 
       SECTION("Is")
       {
-         Node node(Statement(), 4, 6);
+         Node node(Statement({}), 4, 6);
 
          REQUIRE(node.is<FunctionCall>() == false);
          REQUIRE(node.is<Statement>() == true);
@@ -42,23 +42,23 @@ namespace {
 
       SECTION("Node Count")
       {
-         Node node1(Statement(), 4, 6);
+         Node node1(Statement({}), 4, 6);
 
-         REQUIRE(node1.recursive_child_count() == 0);
+         REQUIRE(node1.recursive_child_count() == 1);
          
          Nodes nodes({ 
-            Node(Assignment(),  0, 1),
+            Node(Expression(),  0, 1),
             Node(Expression(),  1, 2) 
          });
          Node node2(ModuleRoot(nodes), 0, 2);
 
-         REQUIRE(node2.recursive_child_count() == 2);
+         REQUIRE(node2.recursive_child_count() == 3);
       }
 
       SECTION("Visit")
       {
          {
-            Node node1(Statement(), 0, 4);
+            Node node1(Statement({}), 0, 4);
 
             TestGetTypeOp op;
             REQUIRE(node1.visit(op) == typeid(Statement));

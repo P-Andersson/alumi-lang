@@ -1,7 +1,5 @@
 #include "alumi/parser/parser_parts.h"
 
-#include <cassert>
-
 namespace alumi
 {
    namespace parser
@@ -13,7 +11,6 @@ namespace alumi
          , m_current(0)
          , m_is_panicing(false)
       {
-         assert(!m_token_source->empty());
       }
 
       Subparser Subparser::create_child() const

@@ -40,9 +40,9 @@ TEST_CASE("Lex Snippets")
 {
 	SECTION("function declaration")
 	{
-		auto tokens = default_lexer.lex(to_code_points("foo := fn(type1 p1, type2 p2) -> type3\n   "));
+		auto lexed_text = default_lexer.lex(to_code_points("foo := fn(type1 p1, type2 p2) -> type3\n   "));
 
-		REQUIRE_THAT(get_types(tokens), Catch::Matchers::Equals(std::vector<TokenType>{
+		REQUIRE_THAT(get_types(lexed_text.tokens()), Catch::Matchers::Equals(std::vector<TokenType>{
 				TokenType::Indent,
 				TokenType::Symbol,
 				TokenType::Assignment,

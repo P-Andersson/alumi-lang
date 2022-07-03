@@ -14,7 +14,8 @@ target_sources(${tname}
                   "src/alumi/parser/test_parse_rule.cpp"
                   "src/alumi/parser/test_parser.cpp" 
                   "src/syntax_tree/test_nodes.cpp" 
-                  "src/syntax_tree/test_tree_nodes.cpp" "src/syntax_tree/test_node_uitils.cpp")
+                  "src/syntax_tree/test_tree_nodes.cpp" 
+                  "src/syntax_tree/test_node_uitils.cpp")
 
 find_package(Catch2)
 

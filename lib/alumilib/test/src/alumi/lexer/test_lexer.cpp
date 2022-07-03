@@ -28,7 +28,7 @@ namespace {
 
 TEST_CASE("Basics")
 {
-	SECTION("Simple Grammar")
+	SECTION("Simple Lexiconr")
 	{
 		Lexer lexer(
 			Text("A"),
@@ -51,14 +51,28 @@ TEST_CASE("Basics")
 
 		SECTION("Basic")
 		{
-			Tokens tokens = lexer.lex(to_code_points("ABC"));
+			Tokens tokens = lexer.lex(to_code_points("ABC")).tokens();
 
-			REQUIRE(tokens.size() == 5);
+			REQUIRE(tokens.size() == 6);
 			REQUIRE(tokens[0] == Token(TokenType::Indent, TextPos(0, 0, 0), 0));
 			REQUIRE(tokens[1] == Token((TokenType)0, TextPos(0, 0, 0), 1));
 			REQUIRE(tokens[2] == Token((TokenType)1, TextPos(0, 1, 1), 1));
 			REQUIRE(tokens[3] == Token((TokenType)2, TextPos(0, 2, 2), 1));
-			REQUIRE(tokens[4] == Token(TokenType::EndOfFile, TextPos(0, 3, 3), 0));
+			REQUIRE(tokens[4] == Token(TokenType::Linebreak, TextPos(0, 3, 3), 0));
+			REQUIRE(tokens[5] == Token(TokenType::EndOfFile, TextPos(0, 3, 3), 0));
+
+		}
+		SECTION("Basic with Trailing Linebreak")
+		{
+			Tokens tokens = lexer.lex(to_code_points("ABC\n")).tokens();
+
+			REQUIRE(tokens.size() == 6);
+			REQUIRE(tokens[0] == Token(TokenType::Indent, TextPos(0, 0, 0), 0));
+			REQUIRE(tokens[1] == Token((TokenType)0, TextPos(0, 0, 0), 1));
+			REQUIRE(tokens[2] == Token((TokenType)1, TextPos(0, 1, 1), 1));
+			REQUIRE(tokens[3] == Token((TokenType)2, TextPos(0, 2, 2), 1));
+			REQUIRE(tokens[4] == Token(TokenType::Linebreak, TextPos(0, 3, 3), 1));
+			REQUIRE(tokens[5] == Token(TokenType::EndOfFile, TextPos(1, 0, 4), 0));
 
 		}
 	}
@@ -73,9 +87,9 @@ TEST_CASE("Basics")
 
 		SECTION("Basic")
 		{
-			Tokens tokens = lexer.lex(to_code_points("AAA C  B"));
+			Tokens tokens = lexer.lex(to_code_points("AAA C  B")).tokens();
 
-			REQUIRE(tokens.size() == 5);
+			REQUIRE(tokens.size() == 6);
 			REQUIRE(tokens[0] == Token(TokenType::Indent, TextPos(0, 0, 0), 0));
 			REQUIRE(tokens[1] == Token((TokenType)0, TextPos(0, 0, 0), 3));
 			REQUIRE(tokens[2] == Token((TokenType)2, TextPos(0, 4, 4), 1));
@@ -83,9 +97,9 @@ TEST_CASE("Basics")
 		}
 		SECTION("End Repeats")
 		{
-			Tokens tokens = lexer.lex(to_code_points("AA"));
+			Tokens tokens = lexer.lex(to_code_points("AA")).tokens();
 
-			REQUIRE(tokens.size() == 3);
+			REQUIRE(tokens.size() == 4);
 			REQUIRE(tokens[0] == Token(TokenType::Indent, TextPos(0, 0, 0), 0));
 			REQUIRE(tokens[1] == Token((TokenType)0, TextPos(0, 0, 0), 2));
 		}
@@ -98,17 +112,17 @@ TEST_CASE("Basics")
 
 		SECTION("Basic")
 		{
-			Tokens tokens = lexer.lex(to_code_points("  B"));
+			Tokens tokens = lexer.lex(to_code_points("  B")).tokens();
 
-			REQUIRE(tokens.size() == 3);
+			REQUIRE(tokens.size() == 4);
 			REQUIRE(tokens[0] == Token(TokenType::Indent, TextPos(0, 0, 0), 2));
 			REQUIRE(tokens[1] == Token((TokenType)1, TextPos(0, 2, 2), 1));
 		}
 		SECTION("Indented Line")
 		{
-			Tokens tokens = lexer.lex(to_code_points("B\n   B\n   B"));
+			Tokens tokens = lexer.lex(to_code_points("B\n   B\n   B")).tokens();
 
-			REQUIRE(tokens.size() == 9);
+			REQUIRE(tokens.size() == 10);
 			REQUIRE(tokens[0] == Token(TokenType::Indent, TextPos(0, 0, 0), 0));
 			REQUIRE(tokens[1] == Token((TokenType)1, TextPos(0, 0, 0), 1));
 			REQUIRE(tokens[2] == Token(TokenType::Linebreak, TextPos(0, 1, 1), 1));
@@ -120,9 +134,9 @@ TEST_CASE("Basics")
 		}
 		SECTION("Indented Dedented Line")
 		{
-			Tokens tokens = lexer.lex(to_code_points("B\n   B\nB"));
+			Tokens tokens = lexer.lex(to_code_points("B\n   B\nB")).tokens();
 
-			REQUIRE(tokens.size() == 9);
+			REQUIRE(tokens.size() == 10);
 			REQUIRE(tokens[0] == Token(TokenType::Indent, TextPos(0, 0, 0), 0));
 			REQUIRE(tokens[1] == Token((TokenType)1, TextPos(0, 0, 0), 1));
 			REQUIRE(tokens[2] == Token(TokenType::Linebreak, TextPos(0, 1, 1), 1));
@@ -134,9 +148,9 @@ TEST_CASE("Basics")
 		}
 		SECTION("Nested Indented Line")
 		{
-			Tokens tokens = lexer.lex(to_code_points("B\n   B\n      B"));
+			Tokens tokens = lexer.lex(to_code_points("B\n   B\n      B")).tokens();
 
-			REQUIRE(tokens.size() == 9);
+			REQUIRE(tokens.size() == 10);
 			REQUIRE(tokens[0] == Token(TokenType::Indent, TextPos(0, 0, 0), 0));
 			REQUIRE(tokens[1] == Token((TokenType)1, TextPos(0, 0, 0), 1));
 			REQUIRE(tokens[2] == Token(TokenType::Linebreak, TextPos(0, 1, 1), 1));
@@ -148,9 +162,9 @@ TEST_CASE("Basics")
 		}
 		SECTION("Cliff Dedent Line")
 		{
-			Tokens tokens = lexer.lex(to_code_points("B\n\tB\n\t\tB\nB"));
+			Tokens tokens = lexer.lex(to_code_points("B\n\tB\n\t\tB\nB")).tokens();
 
-			REQUIRE(tokens.size() == 12);
+			REQUIRE(tokens.size() == 13);
 			REQUIRE(tokens[0] == Token(TokenType::Indent, TextPos(0, 0, 0), 0));
 			REQUIRE(tokens[1] == Token((TokenType)1, TextPos(0, 0, 0), 1));
    		REQUIRE(tokens[2] == Token(TokenType::Linebreak, TextPos(0, 1, 1), 1));
@@ -165,9 +179,9 @@ TEST_CASE("Basics")
 		}
 		SECTION("Stepped Dedent Line")
 		{
-			Tokens tokens = lexer.lex(to_code_points("B\n   B\n      B\n   B\nB"));
+			Tokens tokens = lexer.lex(to_code_points("B\n   B\n      B\n   B\nB")).tokens();
 
-			REQUIRE(tokens.size() == 15);
+			REQUIRE(tokens.size() == 16);
 			REQUIRE(tokens[0] == Token(TokenType::Indent, TextPos(0, 0, 0), 0));
 			REQUIRE(tokens[1] == Token((TokenType)1, TextPos(0, 0, 0), 1));
 			REQUIRE(tokens[2] == Token(TokenType::Linebreak, TextPos(0, 1, 1), 1));
@@ -185,9 +199,9 @@ TEST_CASE("Basics")
 		}
 		SECTION("Cliff Dedent Line Blank Lines")
 		{
-			Tokens tokens = lexer.lex(to_code_points("B\n    \n\n   B\n      B\n   \nB"));
+			Tokens tokens = lexer.lex(to_code_points("B\n    \n\n   B\n      B\n   \nB")).tokens();
 
-			REQUIRE(tokens.size() == 15);
+			REQUIRE(tokens.size() == 16);
 			REQUIRE(tokens[0] == Token(TokenType::Indent, TextPos(0, 0, 0), 0));
 			REQUIRE(tokens[1] == Token((TokenType)1, TextPos(0, 0, 0), 1));
 			REQUIRE(tokens[2] == Token(TokenType::Linebreak, TextPos(0, 1, 1), 1));
@@ -215,9 +229,9 @@ TEST_CASE("Basics")
 
 		SECTION("Longest")
 		{
-			Tokens tokens = lexer.lex(to_code_points("AB"));
+			Tokens tokens = lexer.lex(to_code_points("AB")).tokens();
 
-			REQUIRE(tokens.size() == 3);
+			REQUIRE(tokens.size() == 4);
 			REQUIRE(tokens[0] == Token(TokenType::Indent, TextPos(0, 0, 0), 0));
 			REQUIRE(tokens[1] == Token((TokenType)1, TextPos(0, 0, 0), 2));
 

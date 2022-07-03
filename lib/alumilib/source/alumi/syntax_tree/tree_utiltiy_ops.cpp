@@ -1,6 +1,7 @@
-#include "alumi/syntax_tree/util_ops.h"
+#include "alumi/syntax_tree/tree_utiltiy_ops.h"
 
 #include "alumi/syntax_tree/nodes.h"
+#include "alumi/syntax_tree/node_utils.h"
 
 #include <vector>
 
@@ -10,12 +11,6 @@ namespace alumi
    {
       namespace
       {
-         /*std::string to_string(const std::tuple<size_t, size_t>& span)
-         {
-            auto [start, end] = span;
-            return "(L:" + std::to_string(start.line()) + ", C:" + std::to_string(start.col()) + ")";
-         }*/
-
          class NodeOpStringify
          {
          public:
@@ -47,6 +42,10 @@ namespace alumi
             {
                return "Statement";
             }
+            std::string operator()(FunctionDecleration& node) const
+            {
+               return "FunctionDecleration";
+            }
             std::string operator()(FunctionDefinition& node) const
             {
                return "FunctionDefinition";
@@ -62,14 +61,13 @@ namespace alumi
          };
       }
 
-      TreeOpRepresentTree::TreeOpRepresentTree(const std::vector<UnicodeCodePoint>* text, const std::vector<Token>* tokens)
-         : m_text(text)
-         , m_tokens(tokens)
+      TreeOpRepresentTree::TreeOpRepresentTree(const SyntaxTree* tree)
+         : m_tree(tree)
       {
 
       }
 
-      void TreeOpRepresentTree::operator()(ModuleTreeWalker& walker, Node& node) 
+      void TreeOpRepresentTree::operator()(SyntaxTreeWalker& walker, Node& node) 
       {
          size_t in_index = m_index;
          std::string name;
@@ -80,14 +78,9 @@ namespace alumi
          name += node.visit(NodeOpStringify());
          representation += name + "(\"";
 
-         auto [start, end] = node.spans_tokens();
-         if (node.child_group_count() > 0 && node.child_group(0).get_count() > 0)
+         auto code_points = as_string(node, *m_tree);
+         for (auto c : code_points)
          {
-            end = start + node.child_group(0).get_skips() + 1;
-         }
-         for (size_t char_i = (*m_tokens)[start].pos().char_index(); char_i < std::min(m_text->size(), (*m_tokens)[end - 1].pos().char_index() + (*m_tokens)[end - 1].size()); ++char_i)
-         {
-            auto c = (*m_text)[char_i];
             if (c != '\n')
             {
                representation += as_utf8(c);

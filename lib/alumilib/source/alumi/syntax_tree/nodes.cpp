@@ -20,7 +20,7 @@ namespace alumi
 				template <typename T>
 				size_t operator()(const T& obj) const
 				{
-					return 0;
+					return 1;
 				}
 			};
 

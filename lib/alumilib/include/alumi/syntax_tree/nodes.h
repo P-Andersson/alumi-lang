@@ -1,7 +1,7 @@
 #pragma once
 
 #include "alumi/lexer/token.h"
-#include "alumi/syntax_tree/tree_nodes.h"
+#include "alumi/syntax_tree/node_children.h"
 #include "alumi/syntax_tree/node_types.h"
 
 #include <variant>
@@ -31,6 +31,7 @@ namespace alumi
 				IntegerLiteral,
 				Expression, 
 				Statement,
+				FunctionDecleration,
 				FunctionDefinition,
 				FunctionCall, 
 				Brancher>;
@@ -41,6 +42,9 @@ namespace alumi
 
 			std::tuple<size_t, size_t> spans_tokens() const;
 
+			//! 
+			//! Returns the total number nodes this group takes up, including itself and any children
+			//! 
 			size_t recursive_child_count() const;
 			size_t child_group_count() const;
 			ChildGroup child_group(size_t group_index) const;
@@ -68,8 +72,7 @@ namespace alumi
 			{
 				return std::visit(visitor, m_actual);
 			}
-
-	
+				
 
 			template<typename T>
 			bool is() const
@@ -83,6 +86,8 @@ namespace alumi
 			size_t m_token_start;
 			size_t m_token_end;
 		};
+
+		using Nodes = std::vector<Node>;
 
 	}
 
