@@ -39,7 +39,7 @@ namespace alumi
 			Node(const Type& node, const parser::ParseResult& res);
 			Node(const Type& node, size_t m_token_start, size_t m_token_end);
 
-
+			 
 			std::tuple<size_t, size_t> spans_tokens() const;
 
 			//! 
@@ -72,13 +72,20 @@ namespace alumi
 			{
 				return std::visit(visitor, m_actual);
 			}
-				
-
+			
 			template<typename T>
 			bool is() const
 			{
 				return std::holds_alternative<T>(m_actual);
 			}
+
+			template<typename T>
+			const T& as() const
+			{
+				assert(is<T>());
+				return std::get<T>(m_actual);
+			}
+
 
 		private:
 			Type m_actual;

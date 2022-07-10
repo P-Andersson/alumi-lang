@@ -1,6 +1,6 @@
 #pragma once
 
-#include "alumi/syntax_tree/tree_nodes.h"
+#include "alumi/syntax_tree/walker.h"
 
 #include "alumi/syntax_tree.h"
 #include "alumi/parser/data.h"

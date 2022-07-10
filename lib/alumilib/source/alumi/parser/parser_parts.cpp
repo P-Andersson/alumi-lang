@@ -1,5 +1,7 @@
 #include "alumi/parser/parser_parts.h"
 
+#include <cassert>
+
 namespace alumi
 {
    namespace parser
@@ -9,7 +11,7 @@ namespace alumi
          : m_token_source(&tokens)
          , m_start(0)
          , m_current(0)
-         , m_is_panicing(false)
+         , m_panic_token_index()
       {
       }
 
@@ -107,11 +109,11 @@ namespace alumi
          m_current = m_start;
       }
 
-      void Subparser::use_state(const Subparser& parser)
+      void Subparser::take_over_from(const Subparser& parser)
       {
          m_indent_stack = parser.m_indent_stack;
          m_current = parser.m_current;
-         m_is_panicing = parser.m_is_panicing;
+         m_panic_token_index = parser.m_panic_token_index;
       }
 
       size_t Subparser::get_distance() const
@@ -134,19 +136,24 @@ namespace alumi
          m_swallowed.push_back(type);
       }
 
-      void Subparser::do_panic()
+      void Subparser::do_panic(size_t triggering_token_index)
       {
-         m_is_panicing = true;
+         m_panic_token_index = triggering_token_index;
       }
 
       void Subparser::clear_panic()
       {
-         m_is_panicing = false;
+         m_panic_token_index = std::nullopt;
       }
 
       bool Subparser::is_panicing() const
       {
-         return m_is_panicing;
+         return m_panic_token_index != std::nullopt;
+      }
+
+      std::optional<size_t> Subparser::get_panic_token_index() const
+      {
+         return m_panic_token_index;
       }
 
       ParseResult::ParseResult(Type type,
@@ -156,6 +163,7 @@ namespace alumi
          , m_parser_used(parser)
          , m_nodes(child_nodes)
       {
+         assert(type != ParseResult::Type::Failure || m_parser_used.is_panicing());
       }
 
       ParseResult::Type ParseResult::get_type() const
@@ -173,61 +181,66 @@ namespace alumi
          return m_parser_used.get_distance();
       }
 
+
+      std::optional<size_t> ParseResult::get_panic_token_index() const
+      {
+         return m_parser_used.get_panic_token_index();
+      }
+
+
       const syntax_tree::Nodes& ParseResult::get_nodes() const
       {
          return m_nodes;
       }
 
+      ParseResult Indented::parse(Subparser& parent)
+      {
+         auto indent = parent.get_indent();
+         auto token = parent.advance();
 
-
-         ParseResult Indented::parse(Subparser& parent)
+         if (token.type() == TokenType::Indent)
          {
-            auto indent = parent.get_indent();
-            auto token = parent.advance();
-
-            if (token.type() == TokenType::Indent)
+            if (indent == std::nullopt || parent.get_indent() > indent)
             {
-               if (indent == std::nullopt || parent.get_indent() > indent)
-               {
-                  return ParseResult(ParseResult::Type::Success, parent, {});
-               }
+               return ParseResult(ParseResult::Type::Success, parent, {});
             }
-            parent.do_panic();
-            return ParseResult(ParseResult::Type::Failure, parent, {});
          }
+         parent.do_panic(parent.current_token_index() - 1);
+         return ParseResult(ParseResult::Type::Failure, parent, {});
+      }
 
 
-         ParseResult Dedented::parse(Subparser& parent)
+      ParseResult Dedented::parse(Subparser& parent)
+      {
+         auto indent = parent.get_indent();
+         auto token = parent.advance();
+
+         if (token.type() == TokenType::Indent)
          {
-            auto indent = parent.get_indent();
-            auto token = parent.advance();
-
-            if (token.type() == TokenType::Indent)
+            if (indent != std::nullopt && parent.get_indent().value_or(0) < indent)
             {
-               if (indent != std::nullopt && parent.get_indent().value_or(0) < indent)
-               {
-                  return ParseResult(ParseResult::Type::Success, parent, {});
-               }
+               return ParseResult(ParseResult::Type::Success, parent, {});
             }
-            parent.do_panic();
-            return ParseResult(ParseResult::Type::Failure, parent, {});
          }
+         parent.do_panic(parent.current_token_index() - 1);
+         return ParseResult(ParseResult::Type::Failure, parent, {});
+      }
 
-         ParseResult NoIndent::parse(Subparser& parent)
+      ParseResult NoIndent::parse(Subparser& parent)
+      {
+         auto indent = parent.get_indent();
+         auto token = parent.advance();
+
+         if (token.type() == TokenType::Indent)
          {
-            auto indent = parent.get_indent();
-            auto token = parent.advance();
-
-            if (token.type() == TokenType::Indent)
+            if (indent == parent.get_indent())
             {
-               if (indent == parent.get_indent())
-               {
-                  return ParseResult(ParseResult::Type::Success, parent, {});
-               }
+               return ParseResult(ParseResult::Type::Success, parent, {});
             }
-            parent.do_panic();
-            return ParseResult(ParseResult::Type::Failure, parent, {});
          }
+         parent.do_panic(parent.current_token_index() - 1);
+         return ParseResult(ParseResult::Type::Failure, parent, {});
+      }
 
    }
 }

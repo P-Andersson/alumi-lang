@@ -15,10 +15,12 @@ namespace alumi
 		class Error
 		{
 		public:
-			Error(const Nodes& children);
+			Error(size_t token_index, const Nodes& children);
 
 			ChildGroups<1> groups;
+			size_t token_index;
 		private:
+
 		};
 
 		class ModuleRoot

@@ -12,7 +12,7 @@ namespace alumi
 		//!
 		//! Finds the failure token index from a failure result,
 		//! the returned index is relative to parser start
-		//! Note that any child nodes contained in the result will have thier tokens skipped so a 
+		//! Note that any child nodes contained in the result will have their tokens skipped so a 
 		//! token grammar like this:
 		//! 		 A, B, Child, C
 		//! that fails on C will ALWAYS have a an index of 2 (skipping the child)

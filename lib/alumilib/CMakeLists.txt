@@ -15,7 +15,7 @@ PRIVATE
     "include/alumi/parser/parser_parts.h"
     
     
-    "include/alumi/syntax_tree/tree_nodes.h" 
+    "include/alumi/syntax_tree/walker.h" 
     "include/alumi/syntax_tree/node_types.h"
     "include/alumi/syntax_tree/tree_utiltiy_ops.h" 
     "include/alumi/text_pos.h"
@@ -33,7 +33,7 @@ PRIVATE
     "source/alumi/parser/parse_rule.cpp" 
     "source/alumi/parser/parser_parts.cpp"    
     "source/alumi/syntax_tree/nodes.cpp"	
-	"source/alumi/syntax_tree/tree_nodes.cpp"  
+	"source/alumi/syntax_tree/walker.cpp"  
      
     "source/alumi/syntax_tree/node_types.cpp"
     "source/alumi/syntax_tree/tree_utiltiy_ops.cpp"  

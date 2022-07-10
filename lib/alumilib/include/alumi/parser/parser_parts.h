@@ -56,13 +56,16 @@ namespace alumi
 
          //!
          //! Copies the state of a child-parser that should not be scope-limited to a sub-expression,
-         //! such current token and the indention data
+         //! such current token and the indention data, so that it can resume parsing from where the
+         //! child left off
          //! 
-         void use_state(const Subparser& parser);
+         void take_over_from(const Subparser& parser);
 
          size_t get_distance() const;
 
          std::optional<size_t> get_indent() const;
+
+         // TODO Consider how to handle panicing, note that RECOVERED ERRORS paniced because a subparser paniced and not themselves
 
          //!
          //! Marks this parser, along with further children, 
@@ -70,9 +73,27 @@ namespace alumi
          //! 
          void add_swallowed_token(TokenType type);
 
-         void do_panic();
+         //!
+         //! Tells this subparser to enter a panic (error) state, signifying that some parser issue
+         //! has been encountered.
+         //! @param trigger_token_index   the index of token that caused the problem
+         //!  
+         void do_panic(size_t triggering_token_index);
+
+         //!
+         //! Clears panic state, marking that the error could be recovered from
+         //! 
          void clear_panic();
+
+         //!
+         //! True if this is in a state of panic or not
+         //! 
          bool is_panicing() const;
+
+         //!
+         //! Gets the idnex of the token that caused the panic, or nullopt if not
+         //! 
+         std::optional<size_t> get_panic_token_index() const;
 
       private:
          const std::vector<Token>* m_token_source;
@@ -82,14 +103,14 @@ namespace alumi
          size_t m_current;
          std::vector<TokenType> m_swallowed;
 
-         bool m_is_panicing;
+         std::optional<size_t> m_panic_token_index;
 
       };
 
  
 
       //!
-      //! Describes the results of a specific parsing attemp t
+      //! Describes the results of a specific parsing attempt
       //! 
       class ParseResult
       {
@@ -110,6 +131,11 @@ namespace alumi
          const Subparser& get_subparser() const;
 
          size_t get_consumed() const;
+
+         //!
+         //! Returns the token that caused this result to panic, or std::nullopt if none
+         //! 
+         std::optional<size_t> get_panic_token_index() const;
 
          const syntax_tree::Nodes& get_nodes() const;
 
@@ -139,6 +165,7 @@ namespace alumi
             {
                return ParseResult(ParseResult::Type::Success, parent, {});
             }
+            parent.do_panic(parent.current_token_index());
             return ParseResult(ParseResult::Type::Failure, parent, {});
          }
       private:
@@ -154,6 +181,7 @@ namespace alumi
             {
                return ParseResult(ParseResult::Type::Success, parent, {});
             }
+            parent.do_panic(parent.current_token_index() - 1);
             return ParseResult(ParseResult::Type::Failure, parent, {});
          }
       private:
@@ -188,7 +216,7 @@ namespace alumi
             }
             else
             {
-               parent.use_state(res.get_subparser());
+               parent.take_over_from(res.get_subparser());
                return ParseResult(ParseResult::Type::Success, parent, res.get_nodes());
             }
          }
@@ -215,7 +243,7 @@ namespace alumi
                else
                {
                   child_nodes.insert(child_nodes.end(), res.get_nodes().begin(), res.get_nodes().end());
-                  parent.use_state(res.get_subparser());
+                  parent.take_over_from(res.get_subparser());
                }
             }
          }
@@ -244,7 +272,7 @@ namespace alumi
                else
                {
                   child_nodes.insert(child_nodes.end(), res.get_nodes().begin(), res.get_nodes().end());
-                  parent.use_state(res.get_subparser());
+                  parent.take_over_from(res.get_subparser());
                   if (parent.peek().type() == seperator)
                   {
                      parent.advance();
@@ -351,7 +379,7 @@ namespace alumi
             {
                res = *best_failure;
             }
-            parent.use_state(res.get_subparser());
+            parent.take_over_from(res.get_subparser());
             return ParseResult(res.get_type(), parent, res.get_nodes());
 
          }

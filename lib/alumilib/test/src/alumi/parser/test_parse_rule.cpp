@@ -13,7 +13,7 @@ namespace {
    {
       if (res.get_type() == ParseResult::Type::Failure)
       {
-         return Node(Error(res.get_nodes()), res);
+         return Node(Error(*res.get_panic_token_index(), res.get_nodes()), res);
       }
       return Node(IntegerLiteral(), res);
    };
@@ -22,7 +22,7 @@ namespace {
    {
       if (res.get_type() == ParseResult::Type::Failure)
       {
-         return Node(Error(res.get_nodes()), res);
+         return Node(Error(*res.get_panic_token_index(), res.get_nodes()), res);
       }
       return Node(Expression(), res);
    };
@@ -30,7 +30,7 @@ namespace {
    {
       if (res.get_type() == ParseResult::Type::Failure)
       {
-         return Node(Error(res.get_nodes()), res);
+         return Node(Error(*res.get_panic_token_index(), res.get_nodes()), res);
       }
       return Node(FunctionCall(), res);
    };
@@ -148,8 +148,9 @@ namespace {
             REQUIRE(res.get_type() == ParseResult::Type::Failure);
             REQUIRE(res.get_consumed() == 2);
 
-            REQUIRE(res.get_nodes().size() == 1);
-            REQUIRE(res.get_nodes().at(0).is<Error>());
+            REQUIRE(res.get_nodes().size() == 2);
+            REQUIRE(res.get_nodes().at(0).as<Error>().token_index == 0);
+            REQUIRE(res.get_nodes().at(1).as<Error>().token_index == 1);
          }
       }
    }
@@ -220,8 +221,9 @@ namespace {
          REQUIRE(res.get_type() == ParseResult::Type::Failure);
          REQUIRE(res.get_consumed() == 4);
 
-         REQUIRE(res.get_nodes().size() == 1);
-         REQUIRE(res.get_nodes().at(0).is<Error>());
+         REQUIRE(res.get_nodes().size() == 2);
+         REQUIRE(res.get_nodes().at(0).as<Error>().token_index == 0);
+         //REQUIRE(res.get_nodes().at(1).as<Error>().token_index == 1);
       }
 
    }

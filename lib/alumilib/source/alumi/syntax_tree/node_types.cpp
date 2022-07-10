@@ -6,8 +6,9 @@ namespace alumi
 {
 	namespace syntax_tree
 	{
-		Error::Error(const Nodes& children)
+		Error::Error(size_t token_index, const Nodes& children)
 			: groups({ ChildGroup(1, children.size()) })
+			, token_index(token_index)
 		{
 
 		}
