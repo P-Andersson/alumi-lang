@@ -23,11 +23,12 @@ namespace alumi
       public:
          static void do_synch(Subparser& parser)
          {
-            parser.restart_parsing();
+            Subparser synch_parser = parser;
+            synch_parser.restart_parsing();
             size_t imbalance = 1;
             while(true)
             {
-               Token token = parser.advance();
+               Token token = synch_parser.advance();
                if (token.type() == TokenType::EndOfFile)
                {
                   return;
@@ -41,6 +42,7 @@ namespace alumi
                   imbalance -= 1;
                   if (imbalance <= 1)
                   {
+                     parser.take_over_from(synch_parser);
                      parser.clear_panic();
                      return;
                   }
@@ -56,16 +58,18 @@ namespace alumi
       public:
          static void do_synch(Subparser& parser)
          {
-            parser.restart_parsing();
+            Subparser synch_parser = parser;
+            synch_parser.restart_parsing();
             while (true)
             {
-               Token token = parser.advance();
+               Token token = synch_parser.advance();
                if (token.type() == TokenType::EndOfFile)
                {
                   return;
                }
                if (token.type() == closer)
                {
+                  parser.take_over_from(synch_parser);
                   parser.clear_panic();
                   return;
                }

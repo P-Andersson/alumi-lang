@@ -22,7 +22,7 @@ namespace alumi
          {
             if (res.get_type() == ParseResult::Type::Failure)
             {
-               return Node(Error(*res.get_panic_token_index(), res.get_nodes()), res);
+               return Node(Error(ErrorCode::Unknown, *res.get_panic_token_index(), res.get_nodes()), res);
             }
             return Node(syntax_tree::Expression(), res);
          };
@@ -35,7 +35,7 @@ namespace alumi
          {
             if (res.get_type() == ParseResult::Type::Failure)
             {
-               return Node(Error(*res.get_panic_token_index(), res.get_nodes()), res);
+               return Node(Error(ErrorCode::Unknown, *res.get_panic_token_index(), res.get_nodes()), res);
             }
             std::optional<Node> return_type = std::nullopt;
             if (res.get_nodes().size() > 1)
@@ -59,7 +59,7 @@ namespace alumi
          {
             if (res.get_type() == ParseResult::Type::Failure)
             {
-               return Node(Error(*res.get_panic_token_index(), res.get_nodes()), res);
+               return Node(Error(ErrorCode::Unknown, *res.get_panic_token_index(), res.get_nodes()), res);
             }
             const auto& dec = res.get_nodes()[0];
             return Node(syntax_tree::FunctionDefinition(dec, res.get_nodes()[dec.recursive_child_count()]), res);
@@ -72,7 +72,7 @@ namespace alumi
          {
             if (res.get_type() == ParseResult::Type::Failure)
             {
-               return Node(Error(*res.get_panic_token_index(), res.get_nodes()), res);
+               return Node(Error(ErrorCode::Unknown, *res.get_panic_token_index(), res.get_nodes()), res);
             }
             return Node(syntax_tree::Expression(), res);
          };
@@ -86,7 +86,7 @@ namespace alumi
          {
             if (res.get_type() == ParseResult::Type::Failure)
             {
-               return Node(Error(*res.get_panic_token_index(), res.get_nodes()), res);
+               return Node(Error(ErrorCode::Unknown, *res.get_panic_token_index(), res.get_nodes()), res);
             }
             return Node(syntax_tree::Assignment(res.get_nodes()[0]), res);
          };
@@ -106,7 +106,7 @@ namespace alumi
          {
             if (res.get_type() == ParseResult::Type::Failure)
             {
-               return Node(Error(*res.get_panic_token_index(), res.get_nodes()), res);
+               return Node(Error(ErrorCode::Unknown, *res.get_panic_token_index(), res.get_nodes()), res);
             }
             return Node(syntax_tree::Statement(res.get_nodes()), res);
          };
@@ -120,7 +120,7 @@ namespace alumi
          {
             if (res.get_type() == ParseResult::Type::Failure)
             {
-               return Node(Error(*res.get_panic_token_index(), res.get_nodes()), res);
+               return Node(Error(ErrorCode::Unknown, *res.get_panic_token_index(), res.get_nodes()), res);
             }
             return Node(syntax_tree::CodeBlock(res.get_nodes()), res);
          };
@@ -138,7 +138,7 @@ namespace alumi
          {
             if (res.get_type() == ParseResult::Type::Failure)
             {
-               return Node(Error(*res.get_panic_token_index(), res.get_nodes()), res);
+               return Node(Error(ErrorCode::Unknown, *res.get_panic_token_index(), res.get_nodes()), res);
             }
             return Node(ModuleRoot(res.get_nodes()), res);
          };

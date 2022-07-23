@@ -1,6 +1,7 @@
 #pragma once
 
 #include "alumi/lexer/token.h"
+#include "alumi/parser/parser_error_codes.h"
 #include "alumi/syntax_tree/node_children.h"
 
 #include <optional>
@@ -15,9 +16,10 @@ namespace alumi
 		class Error
 		{
 		public:
-			Error(size_t token_index, const Nodes& children);
+			Error(parser::ErrorCode ec, size_t token_index, const Nodes& children);
 
 			ChildGroups<1> groups;
+			parser::ErrorCode error_code;
 			size_t token_index;
 		private:
 

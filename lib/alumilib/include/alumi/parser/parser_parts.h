@@ -150,7 +150,7 @@ namespace alumi
 
       template<typename T>
       concept ParserElement = requires (T& element, Subparser& parent) {
-         true; //element.parse(parent); // If enabled, forward declared types cannot be used and that makes recurisve rules impossible
+         true; //element.parse(parent); // If enabled, forward declared types cannot be used and that makes recurisve rules difficult/impossible. This is thus left to false. Maybe 
       };
       
       template<ParserElement T>
@@ -367,6 +367,10 @@ namespace alumi
       };
 
 
+      //! 
+      //! Expects one of several child-rules. If none of them matches, produces a parse failure on the LONGEST match before failure. In case of a tie, fails on the last subrule of those tied
+      //! @tparam Ts    one or more child rules
+      //! 
       template<ParserElement... Ts>
       class AnyOf
       {
@@ -393,7 +397,7 @@ namespace alumi
             if (res.get_type() != ParseResult::Type::Success)
             {
                if (best_failure == std::nullopt || 
-                  (res.get_type() > best_failure->get_type()) || 
+                  (res.get_type() > best_failure->get_type()) ||
                   (res.get_type() == best_failure->get_type() && res.get_consumed() > best_failure->get_consumed()))
                {
                   best_failure = res;
