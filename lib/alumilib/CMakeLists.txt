@@ -38,7 +38,13 @@ PRIVATE
     "source/alumi/syntax_tree/node_types.cpp"
     "source/alumi/syntax_tree/tree_utiltiy_ops.cpp"  
     "source/alumi/syntax_tree/node_utils.cpp"
- "include/alumi/lexer/lexed_text.h" "source/alumi/lexer/lexed_text.cpp" "include/alumi/syntax_tree.h" "source/alumi/syntax_tree.cpp" "include/alumi/syntax_tree/node_children.h" "source/alumi/syntax_tree/node_children.cpp" "include/alumi/parser/parser_error_codes.h")
+     "include/alumi/lexer/lexed_text.h"
+     "source/alumi/lexer/lexed_text.cpp" 
+     "include/alumi/syntax_tree.h" 
+     "source/alumi/syntax_tree.cpp" 
+     "include/alumi/syntax_tree/node_children.h" 
+     "source/alumi/syntax_tree/node_children.cpp" 
+     "include/alumi/parser/parser_error_codes.h"  "include/alumi/parser/grammar/rule_macro.h" "modules/parser/grammar/function_parameter.ixx" "modules/parser/grammar/function_declaration.ixx" "modules/parser/grammar/function_definition.ixx" "modules/parser/grammar/expression.ixx" "modules/parser/grammar/assignment.ixx" "modules/parser/grammar/code_block.ixx" "modules/parser/grammar/statement.ixx"   "modules/parser/grammar/grammar.ixx" "modules/parser/grammar/root.ixx")
 find_package(utf8cpp)
 find_package(fmt)
 
