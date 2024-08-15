@@ -6,23 +6,38 @@ module;
 
 export module alumi.parser.grammar;
 
+import alumi.parser.combinator;
+
 using namespace alumi;
-using namespace alumi::parser;
 
 import :assignment;
 import :code_block;
 import :expression;
+import :function_call;
 import :function_declaration;
 import :function_definition;
 import :function_parameter;
 import :root;
 import :statement;
+import :tuple;
+import :value;
 
+namespace grammar 
+{
 class CodeBlock;
 
 RULE(NewBlock, Indented);
 RULE(EndBlock, AnyOf<Is<TokenType::EndOfFile>, Sequence<Is<TokenType::Linebreak>, Dedented>>);
 RULE(EndOfLine, AnyOf<Is<TokenType::Linebreak>, Is<TokenType::EndOfFile>>);
+
+RULE(LiteralDereference, ParseRule<Is<TokenType::Literal>, NeverSynchroize, build_literal_dereference_node>);
+
+RULE(SymbolDereference, ParseRule<Is<TokenType::Symbol>, NeverSynchroize, build_value_deference_node>);
+
+RULE(Value, ParseRule<AnyOf<
+   Is<TokenType::Literal>,
+   Is<TokenType::Symbol>
+   >, NeverSynchroize, build_value_node>);
 
 RULE(FunctionParameters, ParseRule<
    RepeatsWithSeperator<Sequence<Is<TokenType::Symbol>,
@@ -45,11 +60,23 @@ RULE(FunctionDeclaration, ParseRule<
 RULE(FunctionDefinition, ParseRule<
    Sequence<FunctionDeclaration, CodeBlock>, SynchronizeOnToken<TokenType::Indent>, build_func_definition>);
 
-RULE(Expression, ParseRule<
-   AnyOf<
-   Is<TokenType::Literal>,
-   Is<TokenType::Symbol>
-   >, NeverSynchroize, build_expression_node>);
+RULE(TupleValues, ParseRule <
+   RepeatsWithSeperator<Value, TokenType::Seperator>,
+   NeverSynchroize, build_tuple_values_node>);
+
+RULE(FunctionArgumentsScope, ParseRule <
+   Sequence<Is<TokenType::SubscopeBegin>,
+   TupleValues,
+   Is<TokenType::SubScopeEnd>>,
+   SynchronzieOnMatchedPair<TokenType::SubscopeBegin, TokenType::SubScopeEnd>, build_function_call_paremeters_scope_node>);
+
+RULE(FunctionCall, ParseRule<
+   Sequence<Value, FunctionArgumentsScope>, NeverSynchroize, build_function_call_node>);
+
+RULE(Expression, ParseRule<AnyOf<
+   Value,
+   FunctionCall>
+   , NeverSynchroize, build_expression_node>);
 
 RULE(Assignment,
    ParseRule<Sequence<
@@ -78,3 +105,4 @@ RULE(CodeBlock, ParseRule<
    >, SynchronzieOnMatchedPair<TokenType::Indent, TokenType::Indent>, build_block_node>);
 
 export RULE(AlumiGrammar, ParseRule<AnyOf<EndOfLine, CodeBlock>, SynchronizeOnToken<TokenType::Linebreak>, build_root_node>);
+}

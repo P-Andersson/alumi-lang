@@ -1,9 +1,9 @@
 #pragma once
 
-#include "alumi/parser/parser_parts.h"
-
 #include "alumi/parser/data.h"
 #include "alumi/syntax_tree.h"
+
+import alumi.parser;
 
 namespace alumi
 {
@@ -20,7 +20,7 @@ namespace alumi
 		//! 
 		//! @precondition result mest of type Failure, Success or even RecoveredFailure is not vaild
 		//! 
-		size_t get_failure_token_index(const ::alumi::parser::ParseResult& result);
+		size_t get_failure_token_index(const ::alumi::parser::Result& result);
 
 	  	//!
 		//! Converts a single node to the source text, replaces "in-the-middle" child nodes with " ... ". 

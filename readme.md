@@ -8,7 +8,7 @@ This is how you build the alumi-lang compiler and related libraries
 
 ### Requirements
 
-The following tools need to be installed in order to build: conan 1.50, cmake 3.22, a c++20 compatible compiler
+The following tools need to be installed in order to build: conan 1.50, cmake 3.28, a c++23 compatible compiler
 
 ### Building
 

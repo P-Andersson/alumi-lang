@@ -1,7 +1,6 @@
-#include "catch2/catch.hpp"
+#include <catch2/catch_test_macros.hpp>
 
-#include "alumi/syntax_tree/walker.h"
-#include "alumi/syntax_tree/nodes.h"
+import alumi.syntax_tree;
 
 #include <typeindex>
 

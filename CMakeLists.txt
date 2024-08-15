@@ -1,33 +1,16 @@
-project(vclang)
+cmake_minimum_required(VERSION 3.28)
 
-cmake_minimum_required(VERSION 3.22)
+project(alumi-lang)
 
-if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
-  message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
-  file(DOWNLOAD "https://raw.githubusercontent.com/conan-io/cmake-conan/0.18.1/conan.cmake"
-                "${CMAKE_BINARY_DIR}/conan.cmake"
-                TLS_VERIFY ON)
-endif()
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-include(${CMAKE_BINARY_DIR}/conan.cmake)
+set(CMAKE_PROJECT_TOP_LEVEL_INCLUDES 
+  "external/cmake-conan/conan_provider.cmake" # conan dependeny provider
+CACHE STRING "Top level includes to use")
 
-conan_cmake_configure(REQUIRES 
-    catch2/2.13.4
-    fmt/9.0.0 
-    utfcpp/3.2.1
-GENERATORS cmake_find_package)
-
-conan_cmake_autodetect(settings)
-
-conan_cmake_install(PATH_OR_REFERENCE .
-                    BUILD missing
-                    REMOTE conancenter
-                    SETTINGS ${settings})
 set(CMAKE_MODULE_PATH "${CMAKE_BINARY_DIR};${CMAKE_MODULE_PATH}")
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
- 
 enable_testing()
 
 # Catch configuration

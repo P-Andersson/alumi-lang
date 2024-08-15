@@ -1,1 +1,2 @@
-add_subdirectory(alumilib) 
+add_subdirectory(alccemy) 
+#add_subdirectory(alumilib)

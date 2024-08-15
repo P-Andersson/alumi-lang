@@ -4,21 +4,24 @@ module;
 #include "alumi/lexer/token.h"
 
 #include <cassert>
+#include <optional>
 
 export module alumi.parser.grammar:function_definition;
 
-using namespace alumi;
-using namespace alumi::parser;
-using alumi::syntax_tree::Node;
-using alumi::syntax_tree::Error;
+import alumi.parser.error_codes;
+import alumi.syntax_tree.nodes;
+import alumi.syntax_tree.node_builder;
 
-std::optional<Node> build_func_definition(const ParseResult& res)
+using namespace alumi;
+
+std::optional<Node> build_func_definition(const Result& res)
 {
-   if (res.get_type() == ParseResult::Type::Failure)
+   if (res.get_type() == Result::Type::Failure)
    {
-      return Node(Error(ErrorCode::Unknown, *res.get_panic_token_index(), res.get_nodes()), res);
+      Error error(ErrorCode::Unknown, *res.get_panic_token_index(), res.get_nodes());
+      return make_node(error, res);
    }
    const auto& dec = res.get_nodes()[0];
-   return Node(syntax_tree::FunctionDefinition(dec, res.get_nodes()[dec.recursive_child_count()]), res);
+   return make_node(FunctionDefinition(dec, res.get_nodes()[dec.recursive_child_count()]), res);
 
 };

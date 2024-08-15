@@ -4,18 +4,21 @@ module;
 #include "alumi/lexer/token.h"
 
 #include <cassert>
+#include <optional>
 
 export module alumi.parser.grammar:expression;
 
-using namespace alumi;
-using namespace alumi::parser;
-using namespace alumi::syntax_tree;
+import alumi.parser.error_codes;
+import alumi.syntax_tree.nodes;
+import alumi.syntax_tree.node_builder;
 
-std::optional<Node> build_expression_node(const ParseResult& res)
+using namespace alumi;
+
+std::optional<Node> build_expression_node(const Result& res)
 {
-   if (res.get_type() == ParseResult::Type::Failure)
+   if (res.get_type() == Result::Type::Failure)
    {
-      return Node(Error(ErrorCode::Unknown, *res.get_panic_token_index(), res.get_nodes()), res);
+      return make_node(Error(ErrorCode::Unknown, *res.get_panic_token_index(), res.get_nodes()), res);
    }
-   return Node(syntax_tree::Expression(), res);
+   return make_node(Expression(), res);
 };

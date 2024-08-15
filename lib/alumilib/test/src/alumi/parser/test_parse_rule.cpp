@@ -1,6 +1,6 @@
-#include "catch2/catch.hpp"
+#include <catch2/catch_test_macros.hpp>
 
-#include "alumi/parser/parse_rule.h"
+import alumi.parser;
 
 using namespace alumi;
 using namespace alumi::parser;

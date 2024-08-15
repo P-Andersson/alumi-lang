@@ -1,0 +1,7 @@
+[requires]
+catch2/3.6.0
+fmt/11.0.2
+utfcpp/4.0.4
+
+[generators]
+CMakeDeps

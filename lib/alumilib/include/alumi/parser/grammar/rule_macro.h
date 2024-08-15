@@ -1,6 +1,7 @@
 #pragma once
 
-#include "alumi/parser/parser_parts.h"
-#include "alumi/parser/parse_rule.h"
+import alumi.parser.result;
+import alumi.parser.combinator;
 
-#define RULE(name, ...) class name; class name  { public: using RuleOp = __VA_ARGS__;  static ParseResult parse(Subparser& parent){ return RuleOp::parse(parent); }; }
+
+#define RULE(name, ...) class name; class name  { public: using RuleOp = __VA_ARGS__;  static Result parse(Subparser& parent){ return RuleOp::parse(parent); }; }

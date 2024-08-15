@@ -6,7 +6,6 @@ target_include_directories(${tname} PUBLIC include PRIVATE src)
 
 target_sources(${tname}
                PRIVATE
-                  src/main.cpp
                   "src/alumi/lexer/test_lexer_detail.cpp"
                   "src/alumi/lexer/test_lexicon.cpp" 
                   "src/alumi/lexer/test_lexer.cpp" 

@@ -1,6 +1,6 @@
 #include "alumi/syntax_tree/walker.h"
 
-#include "alumi/syntax_tree/nodes.h"
+import alumi.syntax_tree.nodes;
 
 
 namespace alumi

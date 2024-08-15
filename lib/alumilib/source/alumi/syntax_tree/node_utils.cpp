@@ -6,7 +6,7 @@ namespace alumi
 {
 	namespace syntax_tree
 	{
-		size_t get_failure_token_index(const ::alumi::parser::ParseResult& result)
+		size_t get_failure_token_index(const ::alumi::parser::Result& result)
 		{
 			assert(result.get_type() == parser::ParseResult::Type::Failure);
 

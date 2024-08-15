@@ -1,9 +1,9 @@
 #pragma once
 
-#include "alumi/syntax_tree/nodes.h"
-
-#include "alumi/parser/parser_parts.h"
 #include "alumi/lexer/lexed_text.h"
+
+import alumi.syntax_tree.nodes;
+import alumi.parser.result;
 
 namespace alumi
 {
@@ -15,24 +15,24 @@ namespace alumi
    class SyntaxTree
    {
    public:
-      SyntaxTree(const parser::ParseResult& result, const LexedText* source);
+      SyntaxTree(const Result& result, const LexedText* source);
 
-      syntax_tree::Nodes& nodes();
-      const syntax_tree::Nodes& nodes() const;
+      Nodes& nodes();
+      const Nodes& nodes() const;
 
-      const parser::ParseResult& parse_result() const;
+      const Result& parse_result() const;
       const LexedText& source() const;
    
       //!
       //! Gets the direct token indices that a single node is built of. Note that the result may be empty
       //! for nodes who did not consume tokens directly, just other nodes
       //! 
-      std::vector<size_t> direct_tokens(const syntax_tree::Node* node) const;
+      std::vector<size_t> direct_tokens(const Result* node) const;
 
    private:
-      parser::ParseResult m_result;
+      Result m_result;
 
-      syntax_tree::Nodes m_current_nodes;
+      Nodes m_current_nodes;
       const LexedText* m_source;
 
    };
