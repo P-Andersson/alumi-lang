@@ -10,6 +10,7 @@ target_include_directories(${libname} PUBLIC include)
 target_sources(${libname}
   PUBLIC FILE_SET ${libname}_modules TYPE CXX_MODULES FILES
     "modules/alccemy.ixx"
+    "modules/lexer/concepts.ixx"
     "modules/lexer/lexer.ixx"
     "modules/lexer/patterns.ixx" 
     "modules/lexer/text.ixx"
@@ -18,7 +19,9 @@ target_sources(${libname}
     "modules/lexer/unicode.ixx"
 )
 
+find_package(fmt)
 find_package(utf8cpp)
-target_link_libraries(${libname}  PUBLIC utf8cpp)
+
+target_link_libraries(${libname}  PUBLIC fmt::fmt utf8cpp)
 
 add_subdirectory(test)

@@ -8,6 +8,7 @@ module;
 
 export module alccemy.lexer.patterns;
 
+import alccemy.lexer.concepts;
 import alccemy.lexer.unicode;
 
 export namespace alccemy
@@ -35,9 +36,6 @@ export namespace alccemy
       // pattern
       size_t backtrack_cols;
    };
-
-   template<typename T>
-   concept LexerPattern = requires(T & t, UnicodeCodePoint cp, size_t index) { t.check(cp, index); t.terminate(index); };
 
    class Text
    {

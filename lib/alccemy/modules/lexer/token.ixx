@@ -4,15 +4,16 @@ module;
 
 export module alccemy.lexer.token;
 
+import alccemy.lexer.concepts;
 import alccemy.lexer.text;
 
 export namespace alccemy
 {
-   template<typename TokenSet> 
+   template<TokenSet TokenSetT>
    class Token
    {
    public:
-      using Type = TokenSet;
+      using Type = TokenSetT;
 
       Token(Type type, TextPos pos, size_t size)
          : m_pos(pos)
@@ -53,11 +54,11 @@ export namespace alccemy
       Type m_type;
    };
 
-   template<typename TokenSet>
-   using Tokens = std::vector<Token<TokenSet>>;
+   template<TokenSet TokenSetT>
+   using Tokens = std::vector<Token<TokenSetT>>;
 
-   template<typename TokenSet>
-   bool operator==(const Tokens<TokenSet>& l, const Tokens<TokenSet>& r)
+   template<TokenSet TokenSetT>
+   bool operator==(const Tokens<TokenSetT>& l, const Tokens<TokenSetT>& r)
    {
       if (l.size() == r.size())
       {
@@ -73,8 +74,8 @@ export namespace alccemy
    }
 
 
-   template<typename TokenSet>
-   bool operator!=(const Tokens<TokenSet>& l, const Tokens<TokenSet>& r)
+   template<TokenSet TokenSetT>
+   bool operator!=(const Tokens<TokenSetT>& l, const Tokens<TokenSetT>& r)
    {
       return !(l == r);
    }

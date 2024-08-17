@@ -6,7 +6,8 @@ target_include_directories(${tname} PUBLIC include PRIVATE src)
 
 target_sources(${tname}
                PRIVATE
-                  "src/lexer/test_patterns.cpp" 
+                 "src/lexer/test_patterns.cpp" 
+                 "src/lexer/test_lexer.cpp"
 )
 
 find_package(Catch2)
