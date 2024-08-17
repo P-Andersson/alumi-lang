@@ -16,6 +16,6 @@ target_link_libraries(${tname} PRIVATE alccemy Catch2::Catch2WithMain)
 
 add_test(NAME ${tname} COMMAND ${tname})
 
-add_custom_command(TARGET ${tname}
-                   POST_BUILD
-                   COMMAND ctest ${tname} -C $<CONFIGURATION> --output-on-failure)
+#add_custom_command(TARGET ${tname}
+#                   POST_BUILD
+#                   COMMAND ctest ${tname} -C $<CONFIGURATION> --output-on-failure)

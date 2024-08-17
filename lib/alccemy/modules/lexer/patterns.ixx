@@ -132,10 +132,12 @@ export namespace alccemy
       std::unordered_set<UnicodeCodePoint> m_not_permitted;
    };
 
-   template<LexerPattern T, size_t min = 0, size_t max = (size_t)std::numeric_limits<size_t>::max()>
+   template<LexerPattern T, size_t min = 1, size_t max = (size_t)std::numeric_limits<size_t>::max()>
    class Repeats
    {
    public:
+      static_assert(min != 0, "Repeats lexer pattern may not have a minumum of 0 occurances, or it will produce infinite tokens");
+
       Repeats(const T& pattern)
          : m_pattern(pattern)
          , m_offset(0)
@@ -197,6 +199,11 @@ export namespace alccemy
       std::size_t m_offset;
       std::size_t m_repeats;
    };
+
+   // Deduction Guide
+   template<LexerPattern T, size_t min, size_t max>
+   Repeats(const T& pattern) -> Repeats<T, min, max>;
+
 
    template<LexerPattern... PatternT>
    class Pattern

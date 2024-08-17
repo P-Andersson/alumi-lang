@@ -205,8 +205,8 @@ TEST_CASE("Repeats")
 	{
 		Repeats expr(Text("L-"));
 
-		REQUIRE(expr.check(utf32('A'), 0).type == LexerResults::Completed);
-		REQUIRE(expr.check(utf32('A'), 0).backtrack_cols == 1);
+		REQUIRE(expr.check(utf32('A'), 0).type == LexerResults::Failed);
+		REQUIRE(expr.check(utf32('A'), 0).backtrack_cols == 0);
 	}
 	SECTION("1 Repeats")
 	{
@@ -244,7 +244,7 @@ TEST_CASE("Repeats")
 
 		SECTION("0 Repeats")
 		{
-			REQUIRE(expr.terminate(0).type == LexerResults::Completed);
+			REQUIRE(expr.terminate(0).type == LexerResults::Failed);
 		}
 		SECTION("0 Partial Repeats")
 		{
