@@ -389,7 +389,6 @@ namespace alccemy {
 
          TokenizationState state;
 
-         std::vector<size_t> line_length_stack;
          TextPos text_position(0, 0, 0);
          TextPos current_token_start(0, 0, 0);
 
@@ -397,33 +396,34 @@ namespace alccemy {
          {
             tuple_for_each(m_pattern, [&](auto& pattern, size_t patter_index)
                {
-                  if (!state.done[patter_index]) {
-                     LexerResult res = pattern.check(text[text_position.text_index], text_position.text_index - current_token_start.text_index);
-                     if (res.type == LexerResults::Completed)
-                     {
-                        auto token = make_token(pattern, text_position, current_token_start);
-                        if (state.best && state.best->token != std::nullopt)
-                        {
-                           // We only take the largest token, or the one that occurs first if there multiple possible, 
-                           // so we get a well-defined consistent behavior
-                           if (token && token->size() > state.best->token->size())
-                           {
-                              state.best = CompletePattern(backtrack(text_position, res.backtrack_cols, line_length_stack), token);
-                           }
-                        }
-                        else
-                        {
-                           state.best = CompletePattern(backtrack(text_position, res.backtrack_cols, line_length_stack), token);
-                        }
-                        state.done[patter_index] = true;
-                     }
-                     else if (res.type == LexerResults::Failed)
-                     {
-                        state.done[patter_index] = true;
-                     }
+                  if (!state.done[patter_index]) 
+                  {
+                     state.apply_lexer_result(pattern.check(text[text_position.text_index], text_position.text_index - current_token_start.text_index),
+                        text_position,
+                        current_token_start,
+                        pattern,
+                        patter_index);
                   }
                }
             );
+
+            if (text_position.text_index + 1 == text.size()) 
+            {
+               // Inform currently acttive patterns that there are no more codepoints coming up, letting them fail or complete as relevant
+               tuple_for_each(m_pattern, [&](auto& pattern, size_t patter_index)
+                  {
+                     if (!state.done[patter_index])
+                     {
+                        state.apply_lexer_result(pattern.terminate(text_position.text_index + 1),
+                           text_position,
+                           current_token_start,
+                           pattern,
+                           patter_index);
+                     }
+                  }
+               );
+
+            }
 
             if (state.all_done()) {
                if (state.best)
@@ -436,7 +436,7 @@ namespace alccemy {
                   text_position = state.best->end_pos;
                   current_token_start = increment_pos(text_position, text);
                   
-                  state = TokenizationState();
+                  state.reset_for_next_token();
                }
                else
                {
@@ -445,12 +445,11 @@ namespace alccemy {
             }
             auto new_position = increment_pos(text_position, text);
             if (new_position.line > text_position.line) {
-               line_length_stack.push_back(text_position.col);
+               state.line_length_stack.push_back(text_position.col);
             }
             text_position = new_position;
          }
-         // TODO Call terminate
-
+  
          // Always append an end of file token here
          tokens.push_back(Token<TokenSetT>(Token<TokenSetT>::Type::EndOfFile, text_position, 0));
                   
@@ -494,9 +493,75 @@ namespace alccemy {
             return true;
          }
 
+         void reset_for_next_token()
+         {
+            for (size_t i = 0; i < (sizeof...(PatternTs)); ++i)
+            {
+               done[i] = false;
+            }
+            best = std::nullopt;
+         }
 
+         template<LexerPattern PatternT>
+         void apply_lexer_result(const LexerResult& res, const TextPos& text_position, const TextPos& current_token_start, const PatternT& pattern, size_t pattern_index)
+         {
+            if (res.type == LexerResults::Completed)
+            {
+               auto backtracked = backtrack(text_position, res.backtrack_cols, line_length_stack);
+               auto token = make_token(pattern, backtracked, current_token_start);
+               if (best && best->token != std::nullopt)
+               {
+                  // We only take the largest token, or the one that occurs first if there multiple possible, 
+                  // so we get a well-defined consistent behavior
+                  if (token && token->size() > best->token->size())
+                  {
+                     best = CompletePattern(backtracked, token);
+                  }
+               }
+               else
+               {
+                  best = CompletePattern(backtracked, token);
+               }
+               done[pattern_index] = true;
+            }
+            else if (res.type == LexerResults::Failed)
+            {
+               done[pattern_index] = true;
+            }
+         }
+
+         std::vector<size_t> line_length_stack;
          bool done[sizeof...(PatternTs)];
          std::optional<CompletePattern> best;
+
+      private:
+
+         TextPos backtrack(const TextPos& pos, size_t count, const std::vector<size_t>& line_length_stack)
+         {
+            assert(count <= pos.text_index);
+
+            TextPos new_pos = pos;
+            new_pos.text_index -= count; //Note immediate skip backwards, this position will be inconsistent until function return
+            while (count > new_pos.col) {
+               count -= new_pos.col;
+               new_pos.line -= 1;
+               new_pos.col = line_length_stack.at(new_pos.line);
+            }
+            new_pos.col -= count;
+            return new_pos;
+         }
+
+         template<TokenPattern<TokenSetT> T>
+         std::optional<Token<TokenSetT>> make_token(const T& pattern, TextPos current_pos, TextPos token_start_pos)
+         {
+            return pattern.make_token(token_start_pos, current_pos);
+         }
+
+         template<typename T>
+         std::optional<Token<TokenSetT>> make_token(const T& pattern, TextPos current_pos, TextPos token_start_pos)
+         {
+            return std::nullopt;
+         }
       };
 
       TextPos increment_pos(const TextPos& pos, const std::vector<UnicodeCodePoint>& text) {
@@ -510,33 +575,6 @@ namespace alccemy {
             new_pos.col += 1;
          }
          return new_pos;
-      }
-
-      TextPos backtrack(const TextPos& pos, size_t count, const std::vector<size_t>& line_length_stack)
-      {
-         assert(count <= pos.text_index);
-            
-         TextPos new_pos = pos;
-         new_pos.text_index -= count; //Note immediate skip backwards, this position will be inconsistent until function return
-         while (count > new_pos.col) {
-            count -= new_pos.col;
-            new_pos.line -= 1;
-            new_pos.col = line_length_stack.at(new_pos.line);
-         }
-         new_pos.col -= count;
-         return new_pos;
-      }
-
-      template<TokenPattern<TokenSetT> T>
-      std::optional<Token<TokenSetT>> make_token(const T& pattern, TextPos current_pos, TextPos token_start_pos)
-      {
-         return pattern.make_token(token_start_pos, current_pos);
-      }
-
-      template<typename T>
-      std::optional<Token<TokenSetT>> make_token(const T& pattern, TextPos current_pos, TextPos token_start_pos)
-      {
-         return std::nullopt;
       }
 
       std::tuple<PatternTs...> m_pattern;
