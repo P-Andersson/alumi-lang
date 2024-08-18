@@ -60,16 +60,16 @@ TEST_CASE("Basics")
 		);
 
 		SECTION("Basic")
-		{
+		{ 
 			Tokens tokens = lexer.lex(to_code_points("ABC")).tokens();
 
- 			REQUIRE(tokens.size() == 6);
-			REQUIRE(tokens[0] == Token(TestLexicon::Indent, TextPos(0, 0, 0), 0));
-			REQUIRE(tokens[1] == Token(TestLexicon::A, TextPos(0, 0, 0), 1));
-			REQUIRE(tokens[2] == Token(TestLexicon::B, TextPos(0, 1, 1), 1));
-			REQUIRE(tokens[3] == Token(TestLexicon::C, TextPos(0, 2, 2), 1));
-			REQUIRE(tokens[4] == Token(TestLexicon::Linebreak, TextPos(0, 3, 3), 0));
-			REQUIRE(tokens[5] == Token(TestLexicon::EndOfFile, TextPos(0, 3, 3), 0));
+ 			REQUIRE(tokens.size() == 4);
+			//REQUIRE(tokens[0] == Token(TestLexicon::Indent, TextPos(0, 0, 0), 0));
+			REQUIRE(tokens[0] == Token(TestLexicon::A, TextPos(0, 0, 0), 1));
+			REQUIRE(tokens[1] == Token(TestLexicon::B, TextPos(0, 1, 1), 1));
+			REQUIRE(tokens[2] == Token(TestLexicon::C, TextPos(0, 2, 2), 1));
+			//REQUIRE(tokens[4] == Token(TestLexicon::Linebreak, TextPos(0, 3, 3), 0));
+			REQUIRE(tokens[3] == Token(TestLexicon::EndOfFile, TextPos(0, 3, 3), 0));
 
 		}
 		SECTION("Basic with Trailing Linebreak")

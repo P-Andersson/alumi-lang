@@ -1,6 +1,8 @@
 module;
 
 #include <compare>
+#include <iostream>
+#include <string>
 
 export module alccemy.lexer.text;
 
@@ -8,32 +10,29 @@ export namespace alccemy{
    class TextPos
    {
    public:
-      TextPos(size_t line, size_t col, size_t char_index)
-         : m_line(line)
-         , m_col(col)
-         , m_char_index(char_index) 
+      TextPos(size_t line, size_t col, size_t text_index)
+         : line(line)
+         , col(col)
+         , text_index(text_index)
       {}
-
-      size_t line() const
-      {
-         return m_line;
-      }
-
-      size_t col() const
-      {
-         return m_col;
-      }
-
-      size_t char_index() const
-      {
-         return m_char_index;
-      }
 
       auto operator<=>(const TextPos& other) const = default;
 
-   private:
-      size_t m_line;
-      size_t m_col;
-      size_t m_char_index;
+      std::string to_string() const 
+      {
+         return "line: " + std::to_string(line) + 
+                ", col: " + std::to_string(col) + 
+                ", index: " + std::to_string(text_index);
+      }
+
+      size_t line;
+      size_t col;
+      size_t text_index;
    };
+}
+
+std::ostream& operator<<(std::ostream& os, const alccemy::TextPos& pos)
+{
+   os << pos.to_string();
+   return os;
 }

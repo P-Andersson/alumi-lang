@@ -2,6 +2,8 @@ module;
 
 #include <vector>
 
+#include <fmt/core.h>
+
 export module alccemy.lexer.token;
 
 import alccemy.lexer.concepts;
@@ -48,6 +50,11 @@ export namespace alccemy
          return !(*this == r);
       }
 
+      std::string to_string() const
+      {
+         return fmt::format("{}(start: ({}), size: {}) ", m_type, m_pos, m_size);
+      }
+
    private:
       TextPos m_pos;
       size_t m_size;
@@ -79,4 +86,13 @@ export namespace alccemy
    {
       return !(l == r);
    }
+
+   #include <fmt/core.h>
+}
+
+export template<alccemy::TokenSet TokenSetT>
+std::ostream& operator<<(std::ostream& os, const alccemy::Token<TokenSetT>& token)
+{
+   os << token.to_string();
+   return os;
 }

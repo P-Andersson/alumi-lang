@@ -4,6 +4,7 @@ module;
 
 export module alccemy.lexer.concepts;
 
+import alccemy.lexer.text;
 import alccemy.lexer.unicode;
 
 export namespace alccemy {
@@ -33,7 +34,7 @@ export namespace alccemy {
    * Contraints that a token producer class needs to fulfill
    **/
    template<typename T, typename TokenSetT>
-   concept TokenPattern = requires(T & t, size_t line, size_t start, size_t end, size_t string_start_index) { t.make_token(line, start, end, string_start_index); };
+   concept TokenPattern = requires(T & t, TextPos start, TextPos end) { t.make_token(start, end); };
 
    /**
    * Constraints that a lexer pattern class needs to fulfill
