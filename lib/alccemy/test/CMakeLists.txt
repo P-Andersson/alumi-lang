@@ -8,6 +8,8 @@ target_sources(${tname}
                PRIVATE
                  "src/lexer/test_patterns.cpp" 
                  "src/lexer/test_lexer.cpp"
+ 
+                 "src/util/test_tuple.cpp"
 )
 
 find_package(Catch2)
