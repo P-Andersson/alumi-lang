@@ -19,16 +19,6 @@ export namespace alccemy {
       T::EndOfFile;
    };
 
-   /**
-   * Constraints that a TokenSet which is indent signfiicant needs to fulfill
-   * Must fullfill the same requirements as a TokenSet, plus have the Indent and Dedent tokens
-   **/
-   template <typename T>
-   concept TokenSetIndentSignficiant = TokenSet<T> && requires(T token_set) {
-      T::Indent;
-      T::Dedent;
-   };
-
    // TODO Check return type here
    /**
    * Contraints that a token producer class needs to fulfill

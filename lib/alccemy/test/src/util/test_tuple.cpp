@@ -84,3 +84,34 @@ TEST_CASE("Test Tuple For Each")
 		REQUIRE(std::get<2>(tuple) == true);
 	}
 }
+
+TEST_CASE("Test Tuple For")
+{
+	SECTION("Two")
+	{
+		tuple_for(std::make_tuple(1, 2), []<size_t... indicies>(const std::index_sequence<indicies...>)
+		{
+			auto index_size = (sizeof...(indicies));
+			REQUIRE(index_size == 2);
+		});
+	}
+	SECTION("Zero")
+	{
+		tuple_for(std::make_tuple(), []<size_t... indicies>(const std::index_sequence<indicies...>)
+		{
+			auto index_size = (sizeof...(indicies));
+			REQUIRE(index_size == 0);
+		});
+	}
+	SECTION("Five with return value")
+	{
+		auto res = tuple_for(std::make_tuple(1,2,3,4,"yo"), []<size_t... indicies>(const std::index_sequence<indicies...>)
+		{
+			auto index_size = (sizeof...(indicies));
+			REQUIRE(index_size == 5);
+			return std::string("yes");
+		});
+		REQUIRE(res == "yes");
+	}
+
+}

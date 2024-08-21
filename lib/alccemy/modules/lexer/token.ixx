@@ -86,8 +86,6 @@ export namespace alccemy
    {
       return !(l == r);
    }
-
-   #include <fmt/core.h>
 }
 
 export template<alccemy::TokenSet TokenSetT>

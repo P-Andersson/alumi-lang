@@ -44,4 +44,25 @@ namespace alccemy {
       fold_tuple_for_each(std::forward<TupleT>(tuple), std::forward<FuncT>(function), std::make_index_sequence<std::tuple_size_v<std::decay_t<TupleT>>>());
    }
 
+   /**
+   * Executes the function with an indice sequence of the tuple indicies 
+   * as the argument
+   *
+   * The function should have the following format:
+   *  typename <size_t... indicies> 
+   *  ReturnT f(std::index_sequence<indicies>);
+   **/
+   export template<TupleType TupleT, typename FuncT>
+   auto tuple_for(TupleT&& tuple, FuncT&& function) {
+      using ReturnT = decltype(function(std::make_index_sequence<std::tuple_size_v<std::decay_t<TupleT>>>{}));
+      if constexpr (std::same_as<void, ReturnT>) 
+      {
+         function(std::make_index_sequence<std::tuple_size_v<std::decay_t<TupleT>>>{});
+      }
+      else if constexpr (!std::same_as<void, ReturnT>)
+      {
+         return function(std::make_index_sequence<std::tuple_size_v<std::decay_t<TupleT>>>{});
+      }
+   }
+
 }

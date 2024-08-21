@@ -41,9 +41,11 @@ TEST_CASE("Basics")
 	SECTION("Simple Lexicon")
 	{
 		auto lexer = create_lexer<TestLexicon>(
-			Text("A"),
-			Text("B"),
-			Text("C")
+			PatternSet{
+				Text("A"),
+				Text("B"),
+				Text("C")
+			}
 		);
 
 		SECTION("AllOk")
@@ -54,10 +56,12 @@ TEST_CASE("Basics")
 	SECTION("Tokenizes")
 	{
 		auto lexer = create_lexer<TestLexicon>(
-			Tokenize(Text("A"), TestLexicon::A),
-			Tokenize(Text("B"), TestLexicon::B),
-			Tokenize(Text("C"), TestLexicon::C),
-			Tokenize(Text("\n"), TestLexicon::Linebreak)
+			PatternSet{
+				Tokenize(Text("A"), TestLexicon::A),
+				Tokenize(Text("B"), TestLexicon::B),
+				Tokenize(Text("C"), TestLexicon::C),
+				Tokenize(Text("\n"), TestLexicon::Linebreak)
+			}
 		);
 
 		SECTION("Basic")
@@ -88,10 +92,12 @@ TEST_CASE("Basics")
 	SECTION("Mixed")
 	{
 		auto lexer = create_lexer<TestLexicon>(
-			Tokenize(Repeats(Text("A")), TestLexicon::A),
-			Tokenize(Text("B"), TestLexicon::B),
-			Tokenize(Text("C"), TestLexicon::C),
-			Text(" ")
+			PatternSet{
+				Tokenize(Repeats(Text("A")), TestLexicon::A),
+				Tokenize(Text("B"), TestLexicon::B),
+				Tokenize(Text("C"), TestLexicon::C),
+				Text(" ")
+			}
 		);
 
 		SECTION("Basic")
@@ -115,7 +121,12 @@ TEST_CASE("Basics")
 	SECTION("Indent")
 	{
 		auto lexer = create_lexer<TestLexicon>(
-			Tokenize(Text("B"), TestLexicon::B)
+			RuleSet{
+				IndentionRule<TestLexicon, TestLexicon::Indent, TestLexicon::Dedent>()
+			},
+			PatternSet{
+				Tokenize(Text("B"), TestLexicon::B)
+			}
 		);
 
 		SECTION("Basic")
@@ -125,6 +136,7 @@ TEST_CASE("Basics")
 			REQUIRE(tokens.size() == 4);
 			REQUIRE(tokens[0] == Token(TestLexicon::Indent, TextPos(0, 0, 0), 2));
 			REQUIRE(tokens[1] == Token(TestLexicon::B, TextPos(0, 2, 2), 1));
+			REQUIRE(tokens[2] == Token(TestLexicon::Dedent, TextPos(0, 3, 3), 0));
 		}
 		SECTION("Indented Line")
 		{
@@ -229,10 +241,12 @@ TEST_CASE("Basics")
 	SECTION("Longest/Shortest")
 	{
 		auto lexer = create_lexer<TestLexicon>(
-			Tokenize(Repeats<Text, 1>(Text("A")), TestLexicon::A),
-			Tokenize(Text("AB"), TestLexicon::B),
-			Tokenize(Text("B"), TestLexicon::C),
-			Text(" ")
+			PatternSet{
+				Tokenize(Repeats<Text, 1>(Text("A")), TestLexicon::A),
+				Tokenize(Text("AB"), TestLexicon::B),
+				Tokenize(Text("B"), TestLexicon::C),
+				Text(" ")
+			}
 		);
 
 		SECTION("Longest")
@@ -249,9 +263,11 @@ TEST_CASE("Basics")
 	SECTION("Sad Path")
 	{
 		auto lexer = create_lexer<TestLexicon>(
-			Tokenize(Text("A"), TestLexicon::A),
-			Tokenize(Text("B"), TestLexicon::B),
-			Text(" ")
+			PatternSet{
+				Tokenize(Text("A"), TestLexicon::A),
+				Tokenize(Text("B"), TestLexicon::B),
+				Text(" ")
+			}
 		);
 
 		SECTION("Immediate Failure")

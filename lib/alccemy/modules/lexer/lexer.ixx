@@ -17,6 +17,8 @@ export import alccemy.lexer.token;
 export import alccemy.lexer.tokenized_text;
 export import alccemy.lexer.unicode;
 
+export import alccemy.lexer.rules;
+
 import alccemy.util.tuple;
 
 namespace alccemy {
@@ -101,285 +103,24 @@ namespace alccemy {
       std::string m_message;
    };
 
+   export template<typename... RuleTs>
+   using RuleSet = std::tuple<RuleTs...>;
 
-   /* export template <TokenSet TokenSetT, LexerPattern... PatternTs>
+   export template<LexerPattern... PatternTs>
+   using PatternSet = std::tuple<PatternTs...>;
+
+   export template <TokenSet TokenSetT, typename RuleTs = RuleSet<>, typename PatternTs = PatternSet<>>
    class Lexer
    {
    public:
-      Lexer(PatternTs... patterns)
-         : m_pattern(patterns...)
+      Lexer(RuleTs&& rules, PatternTs&& patterns)
+         : m_rules(std::move(rules))
+         , m_pattern(std::move(patterns))
       {
       }
 
-      TokenizedText<TokenSetT> lex(const std::vector<UnicodeCodePoint>& text)
-      {
-         // TODO: Figure out how to represent linebreaks, indents and eofs? Mandatory members of the token set?
-
-         static const std::vector<UnicodeCodePoint> indention_chars({ 0x20, 0x09 });
-
-         reset();
-
-         bool is_indenting = true;
-         size_t last_indent_chars = 0;
-         std::optional<char> indent_char;
-
-         Tokens<TokenSetT> tokens;
-         size_t pos = 0;
-         size_t cur_token_start = 0;
-         size_t line = 0;
-         size_t line_start = 0;
-
-         auto handle_lexer_result = [&](const LexerResult& res)
-            {
-               if (res.type == LexerResults::Completed)
-               {
-                  pos += 1 - res.backtrack_cols;
-                  cur_token_start = pos;
-                  reset();
-               }
-               else if (res.type == LexerResults::Failed)
-               {
-                  reset();
-                  throw LexerFailure<TokenSetT>(LexerFailureReason::UnexpectedCodepoint, tokens, TextPos(line, cur_token_start - line_start, cur_token_start), pos);
-               }
-               else
-               {
-                  pos += 1 - res.backtrack_cols;
-               }
-            };
-
-         while (pos < text.size())
-         {
-            auto character = text[pos];
-            if (character == 0x0a) // Newline
-            {
-               if (cur_token_start < pos && !is_indenting)
-               {
-                  LexerResult res = terminate_codepoint(cur_token_start, pos - cur_token_start, tokens, line, cur_token_start - line_start, pos - line_start);
-                  handle_lexer_result(res);
-               }
-
-               tokens.push_back(Token<TokenSetT>(Token<TokenSetT>::Type::Linebreak, TextPos(line, pos - line_start, pos), 1));
-               line_start = pos + 1;
-               line += 1;
-               pos += 1;
-               is_indenting = true;
-               continue;
-            }
-            if (is_indenting)
-            {
-               if ((indent_char == std::nullopt && std::find(indention_chars.begin(), indention_chars.end(), character) != indention_chars.end()))
-               {
-                  indent_char = character;
-               }
-               if (indent_char != character)
-               {
-                  if (std::find(indention_chars.begin(), indention_chars.end(), character) != indention_chars.end())
-                  {
-                     throw LexerFailure<TokenSetT>(LexerFailureReason::MismatchedIndentionCharacters, tokens, TextPos(line, pos - line_start, cur_token_start), pos);
-                  }
-                  tokens.push_back(Token<TokenSetT>(Token<TokenSetT>::Type::Indent, TextPos(line, 0, line_start), pos - line_start));
-                  is_indenting = false;
-                  cur_token_start = pos;
-               }
-               else
-               {
-                  pos += 1;
-                  continue;
-               }
-            }
-
-
-            LexerResult res = handle_codepoint(character, cur_token_start, pos - cur_token_start, tokens, line, cur_token_start - line_start, pos - line_start);
-            handle_lexer_result(res);
-
-         }
-         if (cur_token_start < pos && !is_indenting)
-         {
-            LexerResult res = terminate_codepoint(cur_token_start, pos - cur_token_start, tokens, line, cur_token_start - line_start, pos - line_start);
-            handle_lexer_result(res);
-         }
-         // Ensure that there is a final end of line token in order for the presence of terminating newline to not affect compiler behaviour
-         if (tokens.size() == 0 || tokens.back().type() != Token<TokenSetT>::Type::Linebreak)
-         {
-            tokens.push_back(Token<TokenSetT>(Token<TokenSetT>::Type::Linebreak, TextPos(line, cur_token_start - line_start, cur_token_start), 0));
-         }
-         tokens.push_back(Token<TokenSetT>(Token<TokenSetT>::Type::EndOfFile, TextPos(line, pos - line_start, pos), 0));
-         return TokenizedText<TokenSetT>(text, tokens);
-      }
-   private:
-      class CompletePattern
-      {
-      public:
-         CompletePattern(size_t end_pos, const std::optional<Token<TokenSetT>>& token)
-            : end_pos(end_pos)
-            , token(token)
-         {
-
-         }
-
-         size_t end_pos;
-         std::optional<Token<TokenSetT>> token;
-      };
-
-      void reset()
-      {
-         for (size_t i = 0; i < sizeof...(PatternTs); ++i)
-         {
-            m_done[i] = false;
-         }
-         m_best = std::nullopt;
-      }
-
-      template<TokenPattern<TokenSetT> T>
-      std::optional<Token<TokenSetT>> make_token(const T& pattern, size_t line, size_t col_start, size_t col_end, size_t string_index)
-      {
-         return pattern.make_token(line, col_start, col_end, string_index);
-      }
-
-      template<typename T>
-      std::optional<Token<TokenSetT>> make_token(const T& pattern, size_t line, size_t col_start, size_t col_end, size_t string_index)
-      {
-         return std::nullopt;
-      }
-
-      template<std::size_t I = 0, typename... Tp>
-      inline typename std::enable_if<I == sizeof...(PatternTs), LexerResult>::type
-         handle_codepoint(UnicodeCodePoint cp, size_t token_start_index, size_t index, Tokens<TokenSetT>& tokens, size_t line, size_t col_start, size_t col_end)
-      {
-         return LexerResult(LexerResults::Continue, 0);
-      }
-
-      template<std::size_t I = 0, typename... Tp>
-      inline typename std::enable_if < I < sizeof...(PatternTs), LexerResult>::type
-         handle_codepoint(UnicodeCodePoint cp, size_t token_start_index, size_t index, Tokens<TokenSetT>& tokens, size_t line, size_t col_start, size_t col_end)
-      {
-         if (!m_done[I])
-         {
-            auto res = std::get<I>(m_pattern).check(cp, index);
-            if (res.type == LexerResults::Completed)
-            {
-               auto token = make_token(std::get<I>(m_pattern), line, col_start, (col_end + 1 - res.backtrack_cols), token_start_index);
-               if (m_best != std::nullopt && m_best->token != std::nullopt)
-               {
-                  if (token != std::nullopt && token->size() > m_best->token->size())
-                  {
-                     m_best = CompletePattern(index - res.backtrack_cols, token);
-                  }
-               }
-               else
-               {
-                  m_best = CompletePattern(index - res.backtrack_cols, token);
-               }
-               m_done[I] = true;
-            }
-            else if (res.type == LexerResults::Failed)
-            {
-               m_done[I] = true;
-            }
-            if ((res.type == LexerResults::Completed || res.type == LexerResults::Failed) && all_done())
-            {
-               if (m_best != std::nullopt)
-               {
-                  auto& token = m_best->token;
-                  if (token != std::nullopt)
-                  {
-                     tokens.push_back(*token);
-
-                     return LexerResult(LexerResults::Completed, (1 + col_end) - col_start - token->size());
-                  }
-                  else
-                  {
-                     return LexerResult(LexerResults::Completed, index - m_best->end_pos);
-                  }
-               }
-               return LexerResult(LexerResults::Failed, 0);
-
-            }
-         }
-         return handle_codepoint<I + 1>(cp, token_start_index, index, tokens, line, col_start, col_end);
-      }
-
-      template<std::size_t I = 0, typename... Tp>
-      inline typename std::enable_if<I == sizeof...(PatternTs), LexerResult>::type
-         terminate_codepoint(size_t token_start_index, size_t index, Tokens<TokenSetT>& tokens, size_t line, size_t col_start, size_t col_end)
-      {
-         return LexerResult(LexerResults::Failed, 0);
-      }
-
-      template<std::size_t I = 0, typename... Tp>
-      inline typename std::enable_if < I < sizeof...(PatternTs), LexerResult>::type
-         terminate_codepoint(size_t token_start_index, size_t index, Tokens<TokenSetT>& tokens, size_t line, size_t col_start, size_t col_end)
-      {
-         if (!m_done[I])
-         {
-            auto res = std::get<I>(m_pattern).terminate(index);
-            if (res.type == LexerResults::Completed)
-            {
-               auto token = make_token(std::get<I>(m_pattern), line, col_start, (col_end - res.backtrack_cols), token_start_index);
-               if (m_best != std::nullopt && m_best->token != std::nullopt)
-               {
-                  if (token != std::nullopt && token->size() > m_best->token->size())
-                  {
-                     m_best = CompletePattern(index - res.backtrack_cols, token);
-                  }
-               }
-               else
-               {
-                  m_best = CompletePattern(index - res.backtrack_cols, token);
-               }
-               m_done[I] = true;
-            }
-            else if (res.type == LexerResults::Failed)
-            {
-               m_done[I] = true;
-            }
-            if ((res.type == LexerResults::Completed || res.type == LexerResults::Failed) && all_done())
-            {
-               if (m_best != std::nullopt)
-               {
-                  auto& token = m_best->token;
-                  if (token != std::nullopt)
-                  {
-                     tokens.push_back(*token);
-
-                     return LexerResult(LexerResults::Completed, (col_end)-col_start - token->size());
-                  }
-                  else
-                  {
-                     return LexerResult(LexerResults::Completed, index - m_best->end_pos);
-                  }
-               }
-               return LexerResult(LexerResults::Failed, 0);
-
-            }
-         }
-         return terminate_codepoint<I + 1>(token_start_index, index, tokens, line, col_start, col_end);
-      }
-
-      bool all_done() const
-      {
-         for (size_t i = 0; i < (sizeof...(PatternTs)); ++i)
-         {
-            if (!m_done[i])
-            {
-               return false;
-            }
-         }
-         return true;
-      }
-
-      std::tuple<PatternTs...> m_pattern;
-      bool m_done[sizeof...(PatternTs)];
-      std::optional<CompletePattern> m_best;
-   }; */
-
-   export template <TokenSet TokenSetT, LexerPattern... PatternTs>
-      class Lexer
-   {
-   public:
-      Lexer(PatternTs... patterns)
-         : m_pattern(patterns...)
+      Lexer(PatternTs&& patterns)
+         : m_pattern(std::move(patterns))
       {
       }
 
@@ -391,30 +132,40 @@ namespace alccemy {
 
          TextPos text_position(0, 0, 0);
          TextPos current_token_start(0, 0, 0);
+         size_t consumed_cps_for_current_token = 0;
+
+         auto rules_states = create_rule_states(m_rules);
 
          while(text_position.text_index < text.size())
          {
-            tuple_for_each(m_pattern, [&](auto& pattern, size_t patter_index)
-               {
-                  if (!state.done[patter_index]) 
-                  {
-                     state.apply_lexer_result(pattern.check(text[text_position.text_index], text_position.text_index - current_token_start.text_index),
-                        text_position,
-                        current_token_start,
-                        pattern,
-                        patter_index);
-                  }
-               }
-            );
-
-            if (text_position.text_index + 1 == text.size()) 
+            auto rules_results = tuple_for(m_rules, [&, this]<size_t... rule_indicies>(std::index_sequence<rule_indicies...>)
             {
-               // Inform currently acttive patterns that there are no more codepoints coming up, letting them fail or complete as relevant
+               RulesResult cur_result = RulesResult::Continue;
+               ([&, this]<size_t index = rule_indicies>()
+                  {
+                     if (cur_result == RulesResult::Consume)
+                     {
+                        return;
+                     }
+
+                     RulesResult res = std::get<index>(m_rules).handle_code_point(std::get<index>(rules_states),
+                        tokens, text[text_position.text_index], text_position);
+                     if (res != RulesResult::Continue)
+                     {
+                        cur_result = res;
+                     }
+                  }
+               (), ...);
+               return cur_result;
+            });
+
+            if (rules_results != RulesResult::Consume)
+            {
                tuple_for_each(m_pattern, [&](auto& pattern, size_t patter_index)
                   {
                      if (!state.done[patter_index])
                      {
-                        state.apply_lexer_result(pattern.terminate(text_position.text_index + 1),
+                        state.apply_lexer_result(pattern.check(text[text_position.text_index], consumed_cps_for_current_token),
                            text_position,
                            current_token_start,
                            pattern,
@@ -422,7 +173,33 @@ namespace alccemy {
                      }
                   }
                );
+            }
 
+            if (text_position.text_index + 1 == text.size() || rules_results != RulesResult::Continue)
+            {
+               // Ignore if we have consumed the first token
+               if (rules_results != RulesResult::Consume || consumed_cps_for_current_token > 0)
+               {
+                  // Inform currently acttive patterns that they are all done parsing, letting them fail or complete as relevant
+                  tuple_for_each(m_pattern, [&](auto& pattern, size_t patter_index)
+                     {
+                        if (!state.done[patter_index])
+                        {
+                           state.apply_lexer_result(pattern.terminate(consumed_cps_for_current_token + 1),
+                              text_position,
+                              current_token_start,
+                              pattern,
+                              patter_index);
+                        }
+                     }
+                  );
+               }
+
+            }
+            
+            if (rules_results != RulesResult::Consume)
+            {
+               consumed_cps_for_current_token += 1;
             }
 
             if (state.all_done()) {
@@ -435,6 +212,7 @@ namespace alccemy {
                   }
                   text_position = state.best->end_pos;
                   current_token_start = increment_pos(text_position, text);
+                  consumed_cps_for_current_token = 0;
                   
                   state.reset_for_next_token();
                }
@@ -449,6 +227,16 @@ namespace alccemy {
             }
             text_position = new_position;
          }
+         // Finalize rules
+         tuple_for(m_rules, [&, this]<size_t... rule_indicies>(std::index_sequence<rule_indicies...>)
+         {
+            ([&, this]<size_t index = rule_indicies>()
+            {
+               std::get<index>(m_rules).end_lexing(std::get<index>(rules_states),
+                  tokens, text_position);
+            }
+            (), ...);
+         });
   
          // Always append an end of file token here
          tokens.push_back(Token<TokenSetT>(Token<TokenSetT>::Type::EndOfFile, text_position, 0));
@@ -471,11 +259,19 @@ namespace alccemy {
          std::optional<Token<TokenSetT>> token;
       };
 
+      template<typename... RuleTs>
+      static auto create_rule_states(const std::tuple<RuleTs...>& rules) {
+         return tuple_for(rules, [&]<size_t... indicies>(std::index_sequence<indicies...>)
+         {
+            return std::make_tuple(std::get<indicies>(rules).initial_state()...);
+         });
+      }
+
       class TokenizationState {
       public: 
          TokenizationState() 
          {
-            for (size_t i = 0; i < (sizeof...(PatternTs)); ++i)
+            for (size_t i = 0; i < std::tuple_size_v<PatternTs>; ++i)
             {
                done[i] = false;
             }
@@ -483,7 +279,7 @@ namespace alccemy {
 
          bool all_done() const
          {
-            for (size_t i = 0; i < (sizeof...(PatternTs)); ++i)
+            for (size_t i = 0; i < std::tuple_size_v<PatternTs>; ++i)
             {
                if (!done[i])
                {
@@ -495,7 +291,7 @@ namespace alccemy {
 
          void reset_for_next_token()
          {
-            for (size_t i = 0; i < (sizeof...(PatternTs)); ++i)
+            for (size_t i = 0; i < std::tuple_size_v<PatternTs>; ++i)
             {
                done[i] = false;
             }
@@ -531,7 +327,7 @@ namespace alccemy {
          }
 
          std::vector<size_t> line_length_stack;
-         bool done[sizeof...(PatternTs)];
+         bool done[std::tuple_size_v<PatternTs>];
          std::optional<CompletePattern> best;
 
       private:
@@ -577,13 +373,20 @@ namespace alccemy {
          return new_pos;
       }
 
-      std::tuple<PatternTs...> m_pattern;
+      RuleTs m_rules;
+      PatternTs m_pattern;
    };
 
-   export template <TokenSet TokenSetT, LexerPattern... PatternTs>
-   Lexer<TokenSetT, PatternTs...> create_lexer(PatternTs... patterns) 
+   export template <TokenSet TokenSetT, typename RuleTs = RuleSet<>, typename PatternTs = PatternSet<>>
+   Lexer<TokenSetT, RuleTs, PatternTs> create_lexer(PatternTs &&patterns)
    {
-      return Lexer<TokenSetT, PatternTs...>(std::move(patterns)...);
+      return Lexer<TokenSetT, RuleTs, PatternTs>(std::move(patterns));
+   }
+
+   export template <TokenSet TokenSetT, typename RuleTs = RuleSet<>, typename PatternTs = PatternSet<>>
+      Lexer<TokenSetT, RuleTs, PatternTs> create_lexer(RuleTs&& rules, PatternTs&& patterns)
+   {
+      return Lexer<TokenSetT, RuleTs, PatternTs>(std::move(rules), std::move(patterns));
    }
 
 
