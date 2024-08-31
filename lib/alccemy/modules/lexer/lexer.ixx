@@ -211,7 +211,7 @@ namespace alccemy {
                      tokens.push_back(*token);
                   }
                   text_position = state.best->end_pos;
-                  current_token_start = increment_pos(text_position, text);
+                  //current_token_start = increment_pos(text_position, text);
                   consumed_cps_for_current_token = 0;
                   
                   state.reset_for_next_token();
@@ -226,6 +226,10 @@ namespace alccemy {
                state.line_length_stack.push_back(text_position.col);
             }
             text_position = new_position;
+
+            if (consumed_cps_for_current_token == 0) {
+               current_token_start = text_position;
+            }
          }
          // Finalize rules
          tuple_for(m_rules, [&, this]<size_t... rule_indicies>(std::index_sequence<rule_indicies...>)
