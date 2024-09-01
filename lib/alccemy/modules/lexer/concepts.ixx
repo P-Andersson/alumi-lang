@@ -11,11 +11,10 @@ export namespace alccemy {
 
    /**
    * Constraints that a TokenSet needs to fulfill
-   * Must be an enum with at least the Linebreak and EndOfFile values
+   * Must be an enum with at least the EndOfFile value
    **/
    template <typename T>
    concept TokenSet = std::is_enum_v<T> && requires(T token_set) {
-      T::Linebreak;
       T::EndOfFile;
    };
 

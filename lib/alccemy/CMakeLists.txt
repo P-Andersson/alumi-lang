@@ -8,6 +8,7 @@ target_sources(${libname}
     "modules/alccemy.ixx"
     
     "modules/lexer/concepts.ixx"
+    "modules/lexer/errors.ixx"
     "modules/lexer/lexer.ixx" 
     "modules/lexer/patterns.ixx" 
     "modules/lexer/text.ixx"
@@ -20,7 +21,9 @@ target_sources(${libname}
     "modules/lexer/rules/rules.ixx"
     "modules/lexer/rules/types.ixx"
     
-    "modules/util/tuple.ixx")
+    "modules/util/tuple.ixx"
+    "modules/util/unique_type_args.ixx"
+)
 
 find_package(fmt)
 find_package(utf8cpp)

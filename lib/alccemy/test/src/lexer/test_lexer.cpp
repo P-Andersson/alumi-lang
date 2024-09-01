@@ -126,8 +126,10 @@ TEST_CASE("Basics")
 				IndentionRule<TestLexicon, TestLexicon::Indent, TestLexicon::Dedent>()
 			},
 			PatternSet{
+    			Tokenize(Text("A"), TestLexicon::A),
 				Tokenize(Text("B"), TestLexicon::B),
 				Tokenize(Text("\n"), TestLexicon::Linebreak),
+				Text(" "),
 			}
 		);
 
@@ -167,6 +169,15 @@ TEST_CASE("Basics")
 			REQUIRE(tokens[5] == Token(TestLexicon::Dedent, TextPos(2, 0, 7), 0));
 			REQUIRE(tokens[6] == Token(TestLexicon::B, TextPos(2, 0, 7), 1));
 			REQUIRE(tokens[7] == Token(TestLexicon::EndOfFile, TextPos(2, 1, 8), 0));
+		}
+		SECTION("Only Newlines Should Produce Indents")
+		{
+			Tokens tokens = lexer.lex(to_code_points("B  A")).tokens();
+
+			REQUIRE(tokens.size() == 3);
+			REQUIRE(tokens[0] == Token(TestLexicon::B, TextPos(0, 0, 0), 1));
+			REQUIRE(tokens[1] == Token(TestLexicon::A, TextPos(0, 3, 3), 1));
+			REQUIRE(tokens[2] == Token(TestLexicon::EndOfFile, TextPos(0, 4, 4), 0));
 		}
 		SECTION("Nested Indented Line")
 		{
@@ -332,7 +343,7 @@ TEST_CASE("Basics")
 		SECTION("One Token Newline Two Token Failure")
 		{
 			REQUIRE_THROWS_AS(lexer.lex(to_code_points("A\n   BC")), LexerFailure<TestLexicon>);
-
+			
 			try
 			{
 				lexer.lex(to_code_points("A\n   BC"));

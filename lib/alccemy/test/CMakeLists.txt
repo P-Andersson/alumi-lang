@@ -10,6 +10,7 @@ target_sources(${tname}
                  "src/lexer/test_lexer.cpp"
  
                  "src/util/test_tuple.cpp"
+                 "src/util/test_unique_type_args.cpp"
 )
 
 find_package(Catch2)
