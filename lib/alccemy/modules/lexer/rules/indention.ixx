@@ -1,11 +1,15 @@
 module;
 
+#include <expected>
 #include <vector>
+#include <variant>
+#include <string>
 #include <optional>
 
 export module alccemy.lexer.rules.indention;
 
 import alccemy.lexer.concepts;
+import alccemy.lexer.errors;
 import alccemy.lexer.token;
 import alccemy.lexer.text;
 import alccemy.lexer.unicode;
@@ -13,10 +17,19 @@ import alccemy.lexer.rules.types;
 
 export namespace alccemy 
 {
+   class MixedIndentionCharactersError {
+   public:
+      std::string description() const noexcept {
+         return "Different indention character used for indention in the same source, these cannot be mixed.";
+      }
+   };
+
    template <TokenSet TokenSetT, TokenSetT indention_token, TokenSetT dedention_token>
    class IndentionRule 
    {
    public:
+      using ErrorType = LexerFailure<TokenSetT, std::variant<MixedIndentionCharactersError>>;
+
       struct IndentionRuleState
       {
          std::optional<UnicodeCodePoint> current_indention_char;
@@ -40,7 +53,7 @@ export namespace alccemy
          return state;
       }
 
-      RulesResult handle_code_point(IndentionRuleState& state, Tokens<TokenSetT>& tokens, const UnicodeCodePoint& cp, const TextPos& position) const
+      std::expected<RulesResult, ErrorType> handle_code_point(IndentionRuleState& state, Tokens<TokenSetT>& tokens, const UnicodeCodePoint& cp, const TextPos& position) const
       {
          // Newline means new indention
          if (cp == '\n')
@@ -60,7 +73,8 @@ export namespace alccemy
          {
             if (state.current_indention_char && cp != state.current_indention_char)
             {
-               //athrow LexerFailure<TokenSetT>(LexerFailureReason::MismatchedIndentionCharacters, tokens, state.indention_start, position);
+               auto err = ErrorType(MixedIndentionCharactersError{}, tokens, position, 1);
+               return std::unexpected(err);
             }
             else
             {
@@ -98,12 +112,14 @@ export namespace alccemy
          return RulesResult::Continue;
       }
 
-      void end_lexing(IndentionRuleState& state, Tokens<TokenSetT>& tokens, const TextPos& pos) const
+      std::expected<void, ErrorType> end_lexing(IndentionRuleState& state, Tokens<TokenSetT>& tokens, const TextPos& pos) const
       {
          for (size_t i = 0; i < state.indention_stack.size() - 1; ++i)
          {
             tokens.push_back(Token<TokenSetT>(dedention_token, pos, 0));
          }
+
+         return std::expected<void, ErrorType>();
       }
    private:
       std::vector<UnicodeCodePoint> m_indention_chars;

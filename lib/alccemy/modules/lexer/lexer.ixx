@@ -1,10 +1,11 @@
 module;
 
-#include <exception>
+#include <expected>
 #include <string>
 #include <vector>
 #include <optional>
 #include <cassert>
+#include <variant>
 
 export module alccemy.lexer;
 
@@ -19,8 +20,18 @@ export import alccemy.lexer.unicode;
 export import alccemy.lexer.rules;
 
 import alccemy.util.tuple;
+import alccemy.util.variant;
 
 namespace alccemy {
+
+   export class UnexpectedCodepointError
+   {
+   public:
+      std::string description() const noexcept
+      {
+         return "Unexpected Codepoint";
+      }
+   };
 
    export template <LexerPattern PatternT, TokenSet TokenSetT>
    class Tokenize
@@ -65,10 +76,24 @@ namespace alccemy {
    export template<LexerPattern... PatternTs>
    using PatternSet = std::tuple<PatternTs...>;
 
+   template<typename... ErrorTypesT>
+   struct ErrorTypes { using type = JoinedVariant<ErrorTypesT...>; };
+
+   template<typename BasicErrorType, typename... RuleTypesT>
+   struct ErrorTypes<BasicErrorType, RuleSet<RuleTypesT...>> {
+      using type = JoinedVariant<BasicErrorType,
+         decltype(RuleTypesT::ErrorType::error_type)... > ;
+   };
+   
    export template <TokenSet TokenSetT, typename RuleTs = RuleSet<>, typename PatternTs = PatternSet<>>
    class Lexer
    {
    public:
+      using ErrorType = LexerFailure<TokenSetT, typename ErrorTypes<std::variant<UnexpectedCodepointError>, RuleTs>::type>;
+   private:
+      using ExpectedRulesResultT = std::expected<RulesResult, ErrorType>;
+   public:
+
       Lexer(RuleTs&& rules, PatternTs&& patterns)
          : m_rules(std::move(rules))
          , m_pattern(std::move(patterns))
@@ -80,7 +105,7 @@ namespace alccemy {
       {
       }
 
-      TokenizedText<TokenSetT> lex(const std::vector<UnicodeCodePoint>& text)
+      std::expected<TokenizedText<TokenSetT>, ErrorType> lex(const std::vector<UnicodeCodePoint>& text)
       {
          Tokens<TokenSetT> tokens;
 
@@ -96,17 +121,17 @@ namespace alccemy {
          {
             auto rules_results = tuple_for(m_rules, [&, this]<size_t... rule_indicies>(std::index_sequence<rule_indicies...>)
             {
-               RulesResult cur_result = RulesResult::Continue;
+               ExpectedRulesResultT cur_result = RulesResult::Continue;
                ([&, this]<size_t index = rule_indicies>()
                   {
-                     if (cur_result == RulesResult::Consume)
+                     if (cur_result && cur_result.value() == RulesResult::Consume)
                      {
                         return;
                      }
 
-                     RulesResult res = std::get<index>(m_rules).handle_code_point(std::get<index>(rules_states),
+                     ExpectedRulesResultT res = std::get<index>(m_rules).handle_code_point(std::get<index>(rules_states),
                         tokens, text[text_position.text_index], text_position);
-                     if (res != RulesResult::Continue)
+                     if (!res || res.value() != RulesResult::Continue)
                      {
                         cur_result = res;
                      }
@@ -114,6 +139,10 @@ namespace alccemy {
                (), ...);
                return cur_result;
             });
+
+            if (!rules_results) {
+               return std::unexpected(rules_results.error());
+            }
 
             if (rules_results != RulesResult::Consume)
             {
@@ -174,7 +203,7 @@ namespace alccemy {
                }
                else
                {
-                  throw LexerFailure<TokenSetT>(LexerFailureReason::UnexpectedCodepoint, tokens, current_token_start, text_position.text_index);
+                  return std::unexpected(ErrorType(UnexpectedCodepointError(), tokens, current_token_start, text_position.text_index));
                }
             }
             auto new_position = increment_pos(text_position, text);

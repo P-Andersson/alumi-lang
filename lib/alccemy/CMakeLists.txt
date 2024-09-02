@@ -23,6 +23,7 @@ target_sources(${libname}
     
     "modules/util/tuple.ixx"
     "modules/util/unique_type_args.ixx"
+    "modules/util/variant.ixx"
 )
 
 find_package(fmt)
