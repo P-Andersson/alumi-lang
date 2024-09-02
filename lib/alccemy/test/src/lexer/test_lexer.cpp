@@ -304,17 +304,19 @@ TEST_CASE("Basics")
 		}
 		SECTION("Mismatched Indention")
 		{
-			auto res = lexer.lex(to_code_points("A\n   B\n\t\t\tA"));
+			auto res = lexer.lex(to_code_points("A\n    B\n  A"));
 			REQUIRE(!res.has_value());
 
 			auto e = res.error();
-			REQUIRE(e.tokens_so_far.size() == 4);
+ 			REQUIRE(e.tokens_so_far.size() == 6);
 			REQUIRE(e.tokens_so_far[0] == Token(TestLexicon::A, TextPos(0, 0, 0), 1));
 			REQUIRE(e.tokens_so_far[1] == Token(TestLexicon::Linebreak, TextPos(0, 1, 1), 1));
-			REQUIRE(e.tokens_so_far[2] == Token(TestLexicon::Indent, TextPos(1, 0, 2), 3));
-			REQUIRE(e.tokens_so_far[3] == Token(TestLexicon::B, TextPos(1, 3, 5), 1));
-			REQUIRE(e.text_pos == TextPos(2, 0, 6));
-			REQUIRE(e.data_index == 7);
+			REQUIRE(e.tokens_so_far[2] == Token(TestLexicon::Indent, TextPos(1, 0, 2), 4));
+			REQUIRE(e.tokens_so_far[3] == Token(TestLexicon::B, TextPos(1, 4, 6), 1));
+			REQUIRE(e.tokens_so_far[4] == Token(TestLexicon::Linebreak, TextPos(1, 5, 7), 1));
+			REQUIRE(e.tokens_so_far[5] == Token(TestLexicon::Dedent, TextPos(2, 0, 8), 2));
+			REQUIRE(e.text_pos == TextPos(2, 2, 10));
+			REQUIRE(e.data_index == 1);
 
 		}
 		SECTION("One Token Failure")

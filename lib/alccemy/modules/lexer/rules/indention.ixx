@@ -24,11 +24,18 @@ export namespace alccemy
       }
    };
 
+   class MismatchedIndentionError {
+   public:
+      std::string description() const noexcept {
+         return "Dedention to an unknown indention layer";
+      }
+   };
+
    template <TokenSet TokenSetT, TokenSetT indention_token, TokenSetT dedention_token>
    class IndentionRule 
    {
    public:
-      using ErrorType = LexerFailure<TokenSetT, std::variant<MixedIndentionCharactersError>>;
+      using ErrorType = LexerFailure<TokenSetT, std::variant<MixedIndentionCharactersError, MismatchedIndentionError>>;
 
       struct IndentionRuleState
       {
@@ -73,8 +80,7 @@ export namespace alccemy
          {
             if (state.current_indention_char && cp != state.current_indention_char)
             {
-               auto err = ErrorType(MixedIndentionCharactersError{}, tokens, position, 1);
-               return std::unexpected(err);
+               return std::unexpected(ErrorType(MixedIndentionCharactersError{}, tokens, position, 1));
             }
             else
             {
@@ -102,7 +108,7 @@ export namespace alccemy
                   // Ensure matching ident
                   if (state.current_indention != state.indention_stack.back())
                   {
-                     // Error dedent to unknown level
+                     return std::unexpected(ErrorType(MismatchedIndentionError{}, tokens, position, 1));
                   }
                }
             }
