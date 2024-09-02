@@ -3,6 +3,7 @@ module;
 #include <string>
 #include <vector>
 #include <unordered_set>
+#include <cassert>
 
 #include <utf8cpp/utf8.h>>
 
@@ -42,6 +43,8 @@ export namespace alccemy
    public:
       Text(const std::string& str)
       {
+         assert(str.size() > 0);
+
          for (auto ite = str.begin(); ite != str.end(); )
          {
             UnicodeCodePoint cp = utf8::next(ite, str.end());

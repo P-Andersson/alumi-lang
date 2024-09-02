@@ -17,17 +17,10 @@ export namespace alccemy{
    class TokenizedText
    {
    public:
-      TokenizedText(const std::vector<UnicodeCodePoint>& text, const Tokens<TokenSet>& tokens)
-      : m_text(text)
-      , m_tokens(tokens)
+      TokenizedText(const Tokens<TokenSet>& tokens)
+      : m_tokens(tokens)
       {
 
-      }
-
-
-      const std::vector<UnicodeCodePoint>& text() const
-      {
-         return m_text;
       }
 
       const Tokens<TokenSet>& tokens() const
@@ -36,7 +29,6 @@ export namespace alccemy{
       }
 
    private:
-      std::vector<UnicodeCodePoint> m_text;
       Tokens<TokenSet> m_tokens;
    };
 }

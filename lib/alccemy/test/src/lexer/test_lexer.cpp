@@ -1,30 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <utf8cpp/utf8.h>
-
 import alccemy.lexer;
 
 using namespace alccemy;
 
 namespace {
-	UnicodeCodePoint utf32(char c)
-	{
-		UnicodeCodePoint out;
-		utf8::utf8to32(&c, &c + 1, &out);
-		return out;
-	}
-
-	std::vector<UnicodeCodePoint> to_code_points(const std::string_view& view)
-	{
-		std::vector<UnicodeCodePoint> code_points;
-		auto ite = view.begin();
-		while (ite != view.end())
-		{
-			code_points.push_back(utf8::next(ite, view.end()));
-		}
-		return code_points;
-	}
-
 	enum class TestLexicon {
 		Linebreak = 100,
 		EndOfFile = 101,
@@ -33,6 +13,7 @@ namespace {
 		A = 0,
 		B,
 		C,
+		Ace,
 	};
 }
 
@@ -50,7 +31,7 @@ TEST_CASE("Basics")
 
 		SECTION("AllOk")
 		{
-			REQUIRE_NOTHROW(lexer.lex(to_code_points("ABC")));
+			REQUIRE_NOTHROW(lexer.lexUtf8("ABC"));
 		}
 	}
 	SECTION("Tokenizes")
@@ -60,13 +41,14 @@ TEST_CASE("Basics")
 				Tokenize(Text("A"), TestLexicon::A),
 				Tokenize(Text("B"), TestLexicon::B),
 				Tokenize(Text("C"), TestLexicon::C),
+				Tokenize(Text(as_utf8(0x0001F0A1)), TestLexicon::Ace),
 				Tokenize(Text("\n"), TestLexicon::Linebreak)
 			}
 		);
 
 		SECTION("Basic")
 		{ 
-			auto tokens = lexer.lex(to_code_points("ABC")).value().tokens();
+			auto tokens = lexer.lexUtf8("ABC").value().tokens();
 
  			REQUIRE(tokens.size() == 4);
 			REQUIRE(tokens[0] == Token(TestLexicon::A, TextPos(0, 0, 0), 1));
@@ -75,9 +57,22 @@ TEST_CASE("Basics")
 			REQUIRE(tokens[3] == Token(TestLexicon::EndOfFile, TextPos(0, 3, 3), 0));
 
 		}
+
+		SECTION("With Multibyte Chars")
+		{
+			auto tokens = lexer.lexUtf8("A" + as_utf8(0x0001F0A1) + "C").value().tokens();
+
+			REQUIRE(tokens.size() == 4);
+			REQUIRE(tokens[0] == Token(TestLexicon::A, TextPos(0, 0, 0), 1));
+			REQUIRE(tokens[1] == Token(TestLexicon::Ace, TextPos(0, 1, 1), 4));
+			REQUIRE(tokens[2] == Token(TestLexicon::C, TextPos(0, 2, 5), 1));
+			REQUIRE(tokens[3] == Token(TestLexicon::EndOfFile, TextPos(0, 3, 6), 0));
+
+		}
+
 		SECTION("Basic with Trailing Linebreak")
 		{
-			auto tokens = lexer.lex(to_code_points("ABC\n")).value().tokens();
+			auto tokens = lexer.lexUtf8("ABC\n").value().tokens();
 
 			REQUIRE(tokens.size() == 5);
 			REQUIRE(tokens[0] == Token(TestLexicon::A, TextPos(0, 0, 0), 1));
@@ -103,7 +98,7 @@ TEST_CASE("Basics")
 
 		SECTION("Basic")
 		{
-			auto tokens = lexer.lex(to_code_points("AAA C  B")).value().tokens();
+			auto tokens = lexer.lexUtf8("AAA C  B").value().tokens();
 
 			REQUIRE(tokens.size() == 4);
 			REQUIRE(tokens[0] == Token(TestLexicon::A, TextPos(0, 0, 0), 3));
@@ -113,9 +108,9 @@ TEST_CASE("Basics")
 		}
 		SECTION("End Repeats")
 		{
-			auto tokens = lexer.lex(to_code_points("AA")).value().tokens();
+ 			auto tokens = lexer.lexUtf8("AA").value().tokens();
 
-			REQUIRE(tokens.size() == 2);
+ 			REQUIRE(tokens.size() == 2);
 			REQUIRE(tokens[0] == Token(TestLexicon::A, TextPos(0, 0, 0), 2));
 		}
 	}
@@ -135,7 +130,7 @@ TEST_CASE("Basics")
 
 		SECTION("Basic")
 		{
-			Tokens tokens = lexer.lex(to_code_points("  B")).value().tokens();
+			auto tokens = lexer.lexUtf8("  B").value().tokens();
 
 			REQUIRE(tokens.size() == 4);
 			REQUIRE(tokens[0] == Token(TestLexicon::Indent, TextPos(0, 0, 0), 2));
@@ -144,7 +139,7 @@ TEST_CASE("Basics")
 		}
 		SECTION("Indented Line")
 		{
-			Tokens tokens = lexer.lex(to_code_points("B\n   B\n   B")).value().tokens();
+			auto tokens = lexer.lexUtf8("B\n   B\n   B").value().tokens();
 
 			REQUIRE(tokens.size() == 8);
 			REQUIRE(tokens[0] == Token(TestLexicon::B, TextPos(0, 0, 0), 1));
@@ -158,7 +153,7 @@ TEST_CASE("Basics")
 		}
 		SECTION("Indented Dedented Line")
 		{
-			Tokens tokens = lexer.lex(to_code_points("B\n   B\nB")).value().tokens();
+			auto tokens = lexer.lexUtf8("B\n   B\nB").value().tokens();
 
 			REQUIRE(tokens.size() == 8);
 			REQUIRE(tokens[0] == Token(TestLexicon::B, TextPos(0, 0, 0), 1));
@@ -172,7 +167,7 @@ TEST_CASE("Basics")
 		}
 		SECTION("Only Newlines Should Produce Indents")
 		{
-			Tokens tokens = lexer.lex(to_code_points("B  A")).value().tokens();
+			auto tokens = lexer.lexUtf8("B  A").value().tokens();
 
 			REQUIRE(tokens.size() == 3);
 			REQUIRE(tokens[0] == Token(TestLexicon::B, TextPos(0, 0, 0), 1));
@@ -181,7 +176,7 @@ TEST_CASE("Basics")
 		}
 		SECTION("Nested Indented Line")
 		{
-			Tokens tokens = lexer.lex(to_code_points("B\n   B\n      B")).value().tokens();
+			auto tokens = lexer.lexUtf8("B\n   B\n      B").value().tokens();
 
 			REQUIRE(tokens.size() == 10);
 			REQUIRE(tokens[0] == Token(TestLexicon::B, TextPos(0, 0, 0), 1));
@@ -197,7 +192,7 @@ TEST_CASE("Basics")
 		}
 		SECTION("Cliff Dedent Line")
 		{
-			Tokens tokens = lexer.lex(to_code_points("B\n\tB\n\t\tB\nB")).value().tokens();
+			auto tokens = lexer.lexUtf8("B\n\tB\n\t\tB\nB").value().tokens();
 
 			REQUIRE(tokens.size() == 12);
 			REQUIRE(tokens[0] == Token(TestLexicon::B, TextPos(0, 0, 0), 1));
@@ -215,7 +210,7 @@ TEST_CASE("Basics")
 		}
 		SECTION("Stepped Dedent Line")
 		{
-			Tokens tokens = lexer.lex(to_code_points("B\n   B\n      B\n   B\nB")).value().tokens();
+			auto tokens = lexer.lexUtf8("B\n   B\n      B\n   B\nB").value().tokens();
 
 			REQUIRE(tokens.size() == 14);
 			REQUIRE(tokens[0] == Token(TestLexicon::B, TextPos(0, 0, 0), 1));
@@ -235,7 +230,7 @@ TEST_CASE("Basics")
 		}
 		SECTION("Cliff Dedent Line Blank Lines")
 		{
-			Tokens tokens = lexer.lex(to_code_points("B\n    \n\n   B\n      B\n   \nB")).value().tokens();
+			auto tokens = lexer.lexUtf8("B\n    \n\n   B\n      B\n   \nB").value().tokens();
 
 			REQUIRE(tokens.size() == 15);
 			REQUIRE(tokens[0] == Token(TestLexicon::B, TextPos(0, 0, 0), 1));
@@ -268,7 +263,7 @@ TEST_CASE("Basics")
 
 		SECTION("Longest")
 		{
-			Tokens tokens = lexer.lex(to_code_points("AB")).value().tokens();
+			auto tokens = lexer.lexUtf8("AB").value().tokens();
 
 			REQUIRE(tokens.size() == 2);
 			REQUIRE(tokens[0] == Token(TestLexicon::B, TextPos(0, 0, 0), 2));
@@ -292,7 +287,7 @@ TEST_CASE("Basics")
 
 		SECTION("Immediate Failure")
 		{
-			auto res = lexer.lex(to_code_points("CCC"));
+			auto res = lexer.lexUtf8("CCC");
 
 			REQUIRE(!res.has_value());
 
@@ -304,7 +299,7 @@ TEST_CASE("Basics")
 		}
 		SECTION("Mismatched Indention")
 		{
-			auto res = lexer.lex(to_code_points("A\n    B\n  A"));
+			auto res = lexer.lexUtf8("A\n    B\n  A");
 			REQUIRE(!res.has_value());
 
 			auto e = res.error();
@@ -321,7 +316,7 @@ TEST_CASE("Basics")
 		}
 		SECTION("One Token Failure")
 		{
-			auto res = lexer.lex(to_code_points("A CC"));
+			auto res = lexer.lexUtf8("A CC");
 			REQUIRE(!res.has_value());
 
 			auto e = res.error();
@@ -333,7 +328,7 @@ TEST_CASE("Basics")
 		}
 		SECTION("One Token Newline Two Token Failure")
 		{
-			auto res = lexer.lex(to_code_points("A\n   BC"));
+			auto res = lexer.lexUtf8("A\n   BC");
 			REQUIRE(!res.has_value());
 
 			auto e = res.error();
