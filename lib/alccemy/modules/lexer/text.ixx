@@ -11,7 +11,8 @@ class TextPos {
  public:
    TextPos(size_t line, size_t col, size_t text_index) : line(line), col(col), text_index(text_index) {}
 
-   auto operator<=>(const TextPos& other) const = default;
+   std::strong_ordering operator<=>(const TextPos& other) const { return text_index <=> other.text_index;
+   }
 
    std::string to_string() const {
       return "line: " + std::to_string(line) + ", col: " + std::to_string(col) +

@@ -32,3 +32,5 @@ find_package(utf8cpp)
 target_link_libraries(${libname}  PUBLIC fmt::fmt utf8cpp)
 
 add_subdirectory(test)
+
+add_subdirectory(examples)
