@@ -5,7 +5,7 @@ using namespace alccemy;
 namespace {
 
 enum class Tokens {
-   Integer,
+   Number,
    Plus,
    Minus,
    Multiply,
@@ -16,7 +16,11 @@ enum class Tokens {
 };
 
 auto lexer = create_lexer<Tokens>(PatternSet{
-    Tokenize(Repeats(AnyOf("0123456789")), Tokens::Integer),
+    Tokenize(Pattern(
+       Repeats(AnyOf("0123456789")), 
+       Repeats<Text, 0, 1>(Text(".")), 
+       Repeats<AnyOf, 0>(AnyOf("0123456789"))), 
+      Tokens::Number),
     Tokenize(Text("+"), Tokens::Plus),
     Tokenize(Text("-"), Tokens::Minus),
     Tokenize(Text("*"), Tokens::Multiply),

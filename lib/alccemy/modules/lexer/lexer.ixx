@@ -97,6 +97,13 @@ export template <TokenSet TokenSetT, typename RuleTs = RuleSet<>, typename Patte
    }
 
  private:
+   struct CodepointInText {
+      CodepointInText(UnicodeCodePoint codepoint, const TextPos& pos) : codepoint(codepoint), pos(pos) {}
+
+      UnicodeCodePoint codepoint;
+      TextPos pos;
+   };
+
    template <UnicodeCodePoint (*step_f)(const std::string&, size_t&), void (*step_back_f)(const std::string&, size_t&)>
    class EncodingAwareLexer {
     public:
@@ -108,6 +115,116 @@ export template <TokenSet TokenSetT, typename RuleTs = RuleSet<>, typename Patte
 
          auto rules_states = create_rule_states(rules);
 
+         std::vector<CodepointInText> current_token_components;
+
+         auto pull_next = [&]() -> bool {
+            if (state.text_position.text_index >= src_text.size()) {
+               return false;
+            }
+
+            auto [next_pos, codepoint] = next(state.text_position, src_text);
+
+            // Apply rules for each new character
+            auto rules_results =
+                tuple_for(rules, [&, this]<size_t... rule_indicies>(std::index_sequence<rule_indicies...>) {
+                   ExpectedRulesResultT cur_result = RulesResult::Continue;
+                   (
+                       [&, this ]<size_t index = rule_indicies>() {
+                          if (cur_result && cur_result.value() == RulesResult::Consume) {
+                             return;
+                          }
+
+                          ExpectedRulesResultT res = std::get<index>(rules).handle_code_point(
+                              std::get<index>(rules_states), state.tokens, codepoint, state.text_position);
+                          if (!res || res.value() != RulesResult::Continue) {
+                             cur_result = res;
+                          }
+                       }(),
+                       ...);
+                   return cur_result;
+                });
+
+            if (rules_results != RulesResult::Consume) {
+               current_token_components.push_back(CodepointInText(codepoint, state.text_position));
+            }
+            state.text_position = next_pos;
+
+            return true;
+         };
+
+         auto apply_lexer_result = [&](auto& pattern, LexerResult res, size_t& current_codepoint_index) -> bool {
+            if (res.type == LexerResults::Completed) {
+               // Note, we backtrack from next position because we want the
+               // position right after the backtrack
+               auto end_index = current_codepoint_index + 1 - (res.backtrack_cols);
+               auto end_pos = state.text_position;
+               if (end_index < current_token_components.size()) {
+                  end_pos = current_token_components[end_index].pos;
+               }
+
+               auto token = state.make_token(pattern, end_pos, state.current_token_start);
+               if (state.best && state.best->token != std::nullopt) {
+                  // We only take the largest token, or the one that occurs first
+                  // if there multiple possible, so we get a well-defined
+                  // consistent behavior
+                  if (token && token->size() > state.best->token->size()) {
+                     state.best = CompletePattern(end_pos, token);
+                  }
+               } else {
+                  state.best = CompletePattern(end_pos, token);
+               }
+               return true;
+            } else if (res.type == LexerResults::Failed) {
+               return true;
+            } else {
+               current_codepoint_index += 1 - res.backtrack_cols;
+               return false;
+            }
+         };
+
+         while (state.text_position.text_index < src_text.size()) {
+            tuple_for_each(patterns, [&, this](auto& pattern, size_t patter_index) {
+               bool done = false;
+
+               size_t current_codepoint = 0;
+               while (!done) {
+                  while (!done && current_codepoint < current_token_components.size()) {
+                     auto codepoint = current_token_components[current_codepoint].codepoint;
+                     auto res = pattern.check(codepoint, current_codepoint);
+                     done = apply_lexer_result(pattern, res, current_codepoint);
+                  }
+                  if (!done && !pull_next()) {
+                     auto res = pattern.terminate(current_codepoint);
+                     apply_lexer_result(pattern, res, current_codepoint);
+                     return;
+                  }
+               }
+            });
+            if (state.best) {
+               auto& token = state.best->token;
+               if (token != std::nullopt) {
+                  state.tokens.push_back(*token);
+               }
+               current_token_components.erase(
+                   std::remove_if(current_token_components.begin(), current_token_components.end(),
+                                  [&](const auto& comp) { return comp.pos < state.best->end_pos; }),
+                   current_token_components.end());
+               if (current_token_components.size() > 0) {
+                  state.current_token_start = current_token_components.front().pos;
+               } else {
+                  state.current_token_start = state.text_position;
+               }
+
+               state.reset_for_next_token();
+            } else {
+               return std::unexpected(ErrorType(UnexpectedCodepointError(), state.tokens, state.current_token_start,
+                                                state.text_position.text_index));
+            }
+         }
+
+         // TODO Terminate rules
+
+         /*
          while (state.text_position.text_index < src_text.size()) {
             auto [next_pos, codepoint] = next(state.text_position, src_text);
 
@@ -194,7 +311,7 @@ export template <TokenSet TokenSetT, typename RuleTs = RuleSet<>, typename Patte
                 }(),
                 ...);
          });
-
+         */
          // Always append an end of file token here
          state.tokens.push_back(Token<TokenSetT>(Token<TokenSetT>::Type::EndOfFile, state.text_position, 0));
 
@@ -262,6 +379,7 @@ export template <TokenSet TokenSetT, typename RuleTs = RuleSet<>, typename Patte
                done[pattern_index] = true;
             } else if (res.type == LexerResults::Failed) {
                done[pattern_index] = true;
+            } else if (res.type == LexerResults::Continue && res.backtrack_cols > 0) {
             }
          }
 
@@ -275,7 +393,7 @@ export template <TokenSet TokenSetT, typename RuleTs = RuleSet<>, typename Patte
          TextPos current_token_start = TextPos(0, 0, 0);
          size_t consumed_cps_for_current_token = 0;
 
-       private:
+       public:
          TextPos backtrack(const TextPos& pos, size_t count, const std::vector<size_t>& line_length_stack,
                            const std::string& source_text) {
             assert(count <= pos.text_index);

@@ -103,10 +103,6 @@ class NotAnyOf {
 
 template <LexerPattern T, size_t min = 1, size_t max = (size_t)std::numeric_limits<size_t>::max()> class Repeats {
  public:
-   static_assert(min != 0,
-                 "Repeats lexer pattern may not have a minumum of 0 "
-                 "occurances, or it will produce infinite tokens");
-
    Repeats(const T& pattern) : m_pattern(pattern), m_offset(0), m_repeats(0) {}
 
    LexerResult check(UnicodeCodePoint cp, size_t index) {
@@ -153,8 +149,9 @@ template <LexerPattern T, size_t min = 1, size_t max = (size_t)std::numeric_limi
    std::size_t m_repeats;
 };
 
-// Deduction Guide
+// Deduction Guides
 template <LexerPattern T, size_t min, size_t max> Repeats(const T& pattern) -> Repeats<T, min, max>;
+
 
 template <LexerPattern... PatternT> class Pattern {
  public:
@@ -172,8 +169,7 @@ template <LexerPattern... PatternT> class Pattern {
             return LexerResult(LexerResults::Completed, res.backtrack_cols);
          }
 
-         m_offset = index;
-         m_offset += 1 - res.backtrack_cols;
+         m_offset = index + 1;
 
          return LexerResult(LexerResults::Continue, res.backtrack_cols);
       }
